@@ -226,9 +226,54 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
 .member-emoji-btn:hover{border-color:var(--a1)}
 .member-emoji-popup{position:absolute;bottom:48px;left:0;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.15);width:280px;display:none}
 .member-emoji-popup.open{display:block}
+
+/* SETTINGS PIN MODAL */
+.settings-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:8888;padding:1.5rem}
+.settings-modal.hidden{display:none}
+.settings-modal-box{background:var(--bg);border-radius:var(--radius);padding:1.75rem 1.5rem;width:100%;max-width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.settings-modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:.3rem}
+.settings-modal-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem}
+.settings-pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:1.25rem}
+.settings-pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:background .15s}
+.settings-pin-dot.filled{background:var(--a1);border-color:var(--a1)}
+.settings-pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.settings-pin-btn{height:52px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.settings-pin-btn:hover{background:var(--bg3)}
+.settings-pin-btn:active{transform:scale(.94)}
+.settings-pin-error{color:#dc2626;font-size:12px;margin-top:.75rem;min-height:18px;font-weight:600}
+.settings-modal-dots.shake{animation:shake .4s ease}
 </style>
 </head>
 <body>
+<!-- SETTINGS PIN MODAL -->
+<div class="settings-modal hidden" id="settings-modal">
+  <div class="settings-modal-box">
+    <div class="settings-modal-title">⚙️ Instellingen</div>
+    <div class="settings-modal-sub">Voer de beheerderspincode in</div>
+    <div class="settings-pin-dots settings-modal-dots" id="settings-pin-dots">
+      <div class="settings-pin-dot" id="spd0"></div>
+      <div class="settings-pin-dot" id="spd1"></div>
+      <div class="settings-pin-dot" id="spd2"></div>
+      <div class="settings-pin-dot" id="spd3"></div>
+    </div>
+    <div class="settings-pin-pad">
+      <button class="settings-pin-btn" onclick="sPinPress('1')">1</button>
+      <button class="settings-pin-btn" onclick="sPinPress('2')">2</button>
+      <button class="settings-pin-btn" onclick="sPinPress('3')">3</button>
+      <button class="settings-pin-btn" onclick="sPinPress('4')">4</button>
+      <button class="settings-pin-btn" onclick="sPinPress('5')">5</button>
+      <button class="settings-pin-btn" onclick="sPinPress('6')">6</button>
+      <button class="settings-pin-btn" onclick="sPinPress('7')">7</button>
+      <button class="settings-pin-btn" onclick="sPinPress('8')">8</button>
+      <button class="settings-pin-btn" onclick="sPinPress('9')">9</button>
+      <button class="settings-pin-btn" onclick="sPinClear()" style="font-size:14px">⌫</button>
+      <button class="settings-pin-btn" onclick="sPinPress('0')">0</button>
+      <button class="settings-pin-btn" onclick="document.getElementById('settings-modal').classList.add('hidden');sPinReset()" style="font-size:12px">Annuleer</button>
+    </div>
+    <div class="settings-pin-error" id="settings-pin-error"></div>
+  </div>
+</div>
+
 <!-- PIN SCREEN -->
 <div class="pin-screen" id="pin-screen">
   <div class="pin-title">🎟 Lootjes</div>
@@ -266,7 +311,7 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
     <div class="tab active" onclick="switchTab('trekken')">Trekken</div>
     <div class="tab" onclick="switchTab('activiteiten')">Activiteiten</div>
     <div class="tab" onclick="switchTab('geschiedenis')">Geschiedenis</div>
-    <div class="tab" onclick="switchTab('instellingen')">⚙️</div>
+    <div class="tab" onclick="checkSettingsPin()">⚙️</div>
   </div>
 
   <!-- TREKKEN -->
@@ -482,6 +527,37 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
 <div class="toast" id="toast">✓ Opgeslagen!</div>
 
 <script>
+/* ─── SETTINGS PIN ─── */
+const SETTINGS_PIN='0210';
+let sPinEntry='';
+function checkSettingsPin(){
+  if(sessionStorage.getItem('settings-ok')==='1'){switchTab('instellingen');return;}
+  sPinReset();
+  document.getElementById('settings-modal').classList.remove('hidden');
+}
+function sPinPress(d){
+  if(sPinEntry.length>=4)return;
+  sPinEntry+=d;
+  document.getElementById(`spd${sPinEntry.length-1}`).classList.add('filled');
+  if(sPinEntry.length===4){
+    if(sPinEntry===SETTINGS_PIN){
+      sessionStorage.setItem('settings-ok','1');
+      document.getElementById('settings-modal').classList.add('hidden');
+      switchTab('instellingen');
+      sPinReset();
+    } else {
+      const dots=document.getElementById('settings-pin-dots');
+      dots.classList.add('shake');
+      document.getElementById('settings-pin-error').textContent='Onjuiste code, probeer opnieuw';
+      setTimeout(()=>{dots.classList.remove('shake');sPinReset();},500);
+    }
+  }
+}
+function sPinClear(){
+  if(sPinEntry.length>0){sPinEntry=sPinEntry.slice(0,-1);document.getElementById(`spd${sPinEntry.length}`).classList.remove('filled');}
+}
+function sPinReset(){sPinEntry='';document.querySelectorAll('.settings-pin-dot').forEach(d=>d.classList.remove('filled'));document.getElementById('settings-pin-error').textContent='';}
+
 /* ─── PIN ─── */
 const PIN='1802';
 let pinEntry='';
@@ -536,6 +612,8 @@ const EMOJI_CATS={
   '⚽ Sport':['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🥊','🤼','🤸','🏋️','🤺','🚵','🤾','🏌️','🏊','🤽','🚣','🧗','⛷️','⛸️','🥋','🤼','🏇','🎿','🛹'],
   '🍕 Eten':['🍕','🍔','🌮','🌯','🥗','🍜','🍱','🍣','🍩','🎂','🧁','🍪','🍦','🍰','🥧','🍫','🍬','🍭','🧃','☕','🍵','🧋','🥤','🍷','🍹','🧇','🥞','🥐','🍳','🥘'],
   '🌿 Natuur':['🌸','🌺','🌻','🌹','🌷','🌲','🌳','🌴','🌵','🍀','🌿','🍁','🍂','🌾','🐶','🐱','🐻','🦊','🦁','🐘','🦒','🦓','🦋','🐠','🐝','🌈','⛅','🌙','☀️','❄️'],
+  '😀 Smileys':['😀','😄','😁','😎','🥳','😍','🤩','😊','🙂','😇','🤗','😜','😏','🥰','😋','🤓','😴','🤔','😅','😂','🥹','😭','😱','🤯','🥸','🤠','👻','🐱','🐶','🦊'],
+  '👤 Mensen':['👶','🧒','👦','👧','🧑','👱','👩','👨','🧔','👴','👵','🧓','👼','🎅','🤶','🦸','🧙','🧝','🧜','🧚','👮','👷','💂','🕵️','👩‍⚕️','👨‍🍳','👩‍🎨','👨‍🚀','🧑‍🎤','🦄'],
   '✨ Overig':['✨','🎉','🎊','🎈','🏆','🥇','🎁','💡','🔮','🪄','🌟','💫','🎶','🎡','🎢','🎟️','🚀','🛸','⭐','💎','🪩','🎠','🎪','🪐','🌠','🎆','🎇','🧨','🪔','💐'],
 };
 const EMOJI_OPTIONS=Object.values(EMOJI_CATS).flat();
