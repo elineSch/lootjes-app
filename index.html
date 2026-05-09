@@ -203,9 +203,59 @@ input[type=color]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:
 
 /* DARK */
 body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1aa;--border:#3f3f46;--border2:#52525b}
+
+/* PIN SCREEN */
+.pin-screen{position:fixed;inset:0;background:var(--grad);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;padding:2rem}
+.pin-screen.hidden{display:none}
+.pin-title{font-family:'Fraunces',serif;font-size:36px;font-weight:700;color:#fff;margin-bottom:.5rem}
+.pin-sub{font-size:14px;color:rgba(255,255,255,.8);margin-bottom:2rem}
+.pin-dots{display:flex;gap:14px;margin-bottom:2rem}
+.pin-dot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:transparent;transition:background .15s}
+.pin-dot.filled{background:#fff;border-color:#fff}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:240px}
+.pin-btn{height:64px;border:none;border-radius:14px;background:rgba(255,255,255,.2);color:#fff;font-size:22px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;backdrop-filter:blur(4px)}
+.pin-btn:hover{background:rgba(255,255,255,.3)}
+.pin-btn:active{transform:scale(.94)}
+.pin-error{color:rgba(255,255,255,.9);font-size:13px;margin-top:1rem;min-height:20px;font-weight:600}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pin-dots.shake{animation:shake .4s ease}
+
+/* MEMBER EMOJI PICKER */
+.member-emoji-wrap{position:relative}
+.member-emoji-btn{width:42px;height:42px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg2);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.member-emoji-btn:hover{border-color:var(--a1)}
+.member-emoji-popup{position:absolute;bottom:48px;left:0;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:10px;z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.15);width:280px;display:none}
+.member-emoji-popup.open{display:block}
 </style>
 </head>
 <body>
+<!-- PIN SCREEN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-title">🎟 Lootjes</div>
+  <div class="pin-sub">Voer de PIN-code in</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" onclick="pinClear()" style="font-size:16px">⌫</button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn" onclick="pinClear(true)" style="font-size:13px">Wis</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
 <div id="app">
   <div class="app-header">
     <div class="app-title" id="app-title-display">🎟 Lootjes</div>
@@ -328,7 +378,10 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
       <div id="members-list"></div>
       <div class="add-row" style="margin-top:.5rem;margin-bottom:0">
         <input type="text" id="member-input" placeholder="Naam, bijv. Emma" onkeydown="if(event.key==='Enter')addMember()">
-        <input type="text" id="member-emoji" placeholder="🙂" style="width:60px;flex:none;text-align:center">
+        <div class="member-emoji-wrap">
+          <button class="member-emoji-btn" id="member-emoji-btn" onclick="toggleMemberEmojiPicker()">🙂</button>
+          <div class="member-emoji-popup" id="member-emoji-popup"></div>
+        </div>
         <button class="btn btn-primary" onclick="addMember()">+ Voeg toe</button>
       </div>
     </div>
@@ -429,6 +482,50 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
 <div class="toast" id="toast">✓ Opgeslagen!</div>
 
 <script>
+/* ─── PIN ─── */
+const PIN='1802';
+let pinEntry='';
+function pinPress(d){
+  if(pinEntry.length>=4)return;
+  pinEntry+=d;
+  document.getElementById(`pd${pinEntry.length-1}`).classList.add('filled');
+  if(pinEntry.length===4){
+    if(pinEntry===PIN){
+      sessionStorage.setItem('pin-ok','1');
+      document.getElementById('pin-screen').classList.add('hidden');
+    } else {
+      const dots=document.getElementById('pin-dots');
+      dots.classList.add('shake');
+      document.getElementById('pin-error').textContent='Onjuiste code, probeer opnieuw';
+      setTimeout(()=>{dots.classList.remove('shake');pinReset();},500);
+    }
+  }
+}
+function pinClear(all){
+  if(all)pinReset();
+  else if(pinEntry.length>0){pinEntry=pinEntry.slice(0,-1);document.getElementById(`pd${pinEntry.length}`).classList.remove('filled');}
+}
+function pinReset(){pinEntry='';document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('filled'));document.getElementById('pin-error').textContent='';}
+if(sessionStorage.getItem('pin-ok')==='1')document.getElementById('pin-screen').classList.add('hidden');
+
+/* ─── MEMBER EMOJI ─── */
+let memberEmoji='🙂';
+function toggleMemberEmojiPicker(){
+  const pop=document.getElementById('member-emoji-popup');
+  if(pop.classList.contains('open')){pop.classList.remove('open');return;}
+  pop.innerHTML='';
+  buildEmojiPicker('member-emoji-popup',memberEmoji,'selectMemberEmoji');
+  pop.classList.add('open');
+}
+function selectMemberEmoji(e){
+  memberEmoji=e;
+  document.getElementById('member-emoji-btn').textContent=e;
+  document.getElementById('member-emoji-popup').classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.member-emoji-wrap'))document.getElementById('member-emoji-popup')?.classList.remove('open');
+});
+
 const SM={altijd:{label:'Altijd',emoji:'🗓'},lente:{label:'Lente',emoji:'🌸'},zomer:{label:'Zomer',emoji:'☀️'},herfst:{label:'Herfst',emoji:'🍂'},winter:{label:'Winter',emoji:'❄️'}};
 const DUR={kort:{label:'Kort',desc:'< 1 uur',emoji:'⚡'},u12:{label:'1-2 uur',desc:'een uurtje',emoji:'🕐'},halve:{label:'Halve dag',desc:'3-4 uur',emoji:'🌤'},hele:{label:'Hele dag',desc:'5+ uur',emoji:'☀️'}};
 const DUR_ORDER=['kort','u12','halve','hele'];
@@ -582,12 +679,12 @@ function updateBtnText(){settings.btntext=document.getElementById('setting-btnte
 /* ─── MEMBERS ─── */
 function addMember(){
   const name=document.getElementById('member-input').value.trim();
-  const emoji=document.getElementById('member-emoji').value.trim()||'🙂';
   if(!name)return;
-  members.push({name,emoji});
+  members.push({name,emoji:memberEmoji});
   save();renderMembers();updateBeurtCard();
   document.getElementById('member-input').value='';
-  document.getElementById('member-emoji').value='';
+  memberEmoji='🙂';
+  document.getElementById('member-emoji-btn').textContent='🙂';
   showToast('👤 Gezinslid toegevoegd!');
 }
 function removeMember(i){
