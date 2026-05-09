@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lootjes App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --a1:#1D9E75;
+  --a2:#0ea5e9;
+  --a1-dark:#0F6E56;
+  --bg:#ffffff;
+  --bg2:#f5f5f3;
+  --bg3:#ebebea;
+  --text:#1a1a1a;
+  --text2:#666;
+  --border:#e0e0de;
+  --border2:#d0d0ce;
+  --radius:14px;
+  --radius-sm:10px;
+  --radius-xs:7px;
+  --grad:linear-gradient(135deg,var(--a1) 0%,var(--a2) 100%);
+  --grad-soft:linear-gradient(135deg,color-mix(in srgb,var(--a1) 15%,var(--bg)) 0%,color-mix(in srgb,var(--a2) 15%,var(--bg)) 100%);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#app{max-width:560px;margin:0 auto;padding:0 0 5rem}
+
+/* HEADER */
+.app-header{background:var(--grad);padding:2rem 1.25rem 1.5rem;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.app-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,.1);border-radius:50%}
+.app-header::after{content:'';position:absolute;bottom:-30px;left:20px;width:100px;height:100px;background:rgba(255,255,255,.07);border-radius:50%}
+.app-title{font-family:'Fraunces',serif;font-size:34px;font-weight:700;color:#fff;line-height:1.1;position:relative;z-index:1}
+.app-subtitle{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px;position:relative;z-index:1}
+
+/* TABS */
+.tabs{display:flex;gap:5px;margin-bottom:1.25rem;flex-wrap:wrap;padding:0 1rem}
+.tab{padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;background:var(--bg);color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .2s;font-weight:500}
+.tab:hover{background:var(--bg2);border-color:var(--border2)}
+.tab.active{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 2px 10px color-mix(in srgb,var(--a1) 40%,transparent)}
+.panel{display:none}.panel.active{display:block}
+
+/* CARDS */
+.card{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin:0 1rem 1rem}
+.card-gradient{background:var(--grad-soft);border-color:color-mix(in srgb,var(--a1) 25%,transparent)}
+.section-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:.65rem}
+
+/* INPUTS */
+input[type=text],input[type=date]{padding:9px 13px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--bg);color:var(--text);transition:border .15s,box-shadow .15s}
+input:focus{outline:none;border-color:var(--a1);box-shadow:0 0 0 3px color-mix(in srgb,var(--a1) 20%,transparent)}
+.add-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.add-row input{flex:1;min-width:140px}
+.btn{padding:8px 15px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;font-weight:500}
+.btn:hover{background:var(--bg2);border-color:var(--border2)}
+.btn-primary{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 2px 8px color-mix(in srgb,var(--a1) 35%,transparent)}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+
+/* SEASON BUTTONS */
+.season-toggle{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem}
+.s-btn{padding:5px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:500}
+.s-btn.on{font-weight:700}
+.s-btn[data-s="lente"].on{background:linear-gradient(135deg,#d4edda,#a8e6cf);border-color:#82c99a;color:#1a6b35}
+.s-btn[data-s="zomer"].on{background:linear-gradient(135deg,#fff3cd,#ffe082);border-color:#f0c040;color:#7a5200}
+.s-btn[data-s="herfst"].on{background:linear-gradient(135deg,#ffe5cc,#ffcc99);border-color:#e8934a;color:#7a3200}
+.s-btn[data-s="winter"].on{background:linear-gradient(135deg,#d6eaff,#b3d4ff);border-color:#6aaee8;color:#0d3f75}
+.s-btn[data-s="altijd"].on{background:var(--grad);color:#fff;border-color:transparent}
+
+/* CHIPS */
+.chips{display:flex;flex-direction:column;gap:7px}
+.chip{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;transition:border-color .15s}
+.chip:hover{border-color:var(--border2)}
+.chip-row{display:flex;align-items:center;justify-content:space-between}
+.chip-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.chip-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.chip-dots{display:flex;gap:3px;flex-shrink:0}
+.s-dot{font-size:10px;padding:2px 7px;border-radius:9px;font-weight:700}
+.s-dot.lente{background:linear-gradient(135deg,#d4edda,#a8e6cf);color:#1a6b35}
+.s-dot.zomer{background:linear-gradient(135deg,#fff3cd,#ffe082);color:#7a5200}
+.s-dot.herfst{background:linear-gradient(135deg,#ffe5cc,#ffcc99);color:#7a3200}
+.s-dot.winter{background:linear-gradient(135deg,#d6eaff,#b3d4ff);color:#0d3f75}
+.s-dot.altijd{background:var(--grad);color:#fff}
+.chip-actions{display:flex;gap:5px;flex-shrink:0;margin-left:8px}
+.chip-actions button{background:none;border:1.5px solid var(--border);border-radius:var(--radius-xs);cursor:pointer;padding:3px 9px;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s}
+.chip-actions button:hover{background:var(--bg);color:var(--text);border-color:var(--border2)}
+.edit-form{margin-top:10px;padding-top:10px;border-top:1.5px solid var(--border)}
+.edit-form input[type=text]{width:100%;margin-bottom:8px}
+.emoji-picker{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.emoji-opt{width:36px;height:36px;border:1.5px solid var(--border);border-radius:var(--radius-xs);background:var(--bg);cursor:pointer;font-size:19px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.emoji-opt:hover{background:var(--bg2);transform:scale(1.1)}
+.emoji-opt.selected{border-color:var(--a1);background:color-mix(in srgb,var(--a1) 12%,var(--bg));box-shadow:0 0 0 2px color-mix(in srgb,var(--a1) 25%,transparent)}
+.emoji-cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.ecat-btn{padding:4px 11px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;background:var(--bg);color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:600;transition:all .15s;white-space:nowrap}
+.ecat-btn:hover{background:var(--bg2)}
+.ecat-btn.active{background:var(--grad);color:#fff;border-color:transparent}
+.edit-actions{display:flex;gap:6px;margin-top:8px}
+.empty-hint{font-size:13px;color:var(--text2);font-style:italic;padding:8px 0}
+
+/* BEURT CARD */
+.beurt-card{background:var(--grad);border-radius:var(--radius);padding:1.1rem 1.25rem;margin:0 1rem .75rem;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.beurt-card::before{content:'';position:absolute;top:-20px;right:-20px;width:90px;height:90px;background:rgba(255,255,255,.12);border-radius:50%}
+.beurt-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.09em;margin-bottom:3px}
+.beurt-name{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff}
+.beurt-avatar{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid rgba(255,255,255,.35)}
+.beurt-next{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+
+/* DRAW BUTTON */
+.draw-btn{display:block;width:calc(100% - 2rem);margin:0 1rem;padding:17px;border:none;border-radius:var(--radius);background:var(--grad);color:#fff;font-family:'Fraunces',serif;font-size:23px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.01em;box-shadow:0 4px 20px color-mix(in srgb,var(--a1) 45%,transparent);position:relative;overflow:hidden}
+.draw-btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .2s}
+.draw-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px color-mix(in srgb,var(--a1) 55%,transparent)}
+.draw-btn:hover::before{background:rgba(255,255,255,.08)}
+.draw-btn:active{transform:scale(.98)}
+
+/* RESULT */
+.result-box{border:1.5px solid var(--border);border-radius:var(--radius);padding:2rem 1.25rem 1.5rem;text-align:center;background:var(--grad-soft);margin:1rem 1rem 0;display:none;position:relative;overflow:hidden}
+.result-box::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;background:color-mix(in srgb,var(--a1) 8%,transparent);border-radius:50%}
+.result-box.show{display:block;animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.result-period{font-size:13px;color:var(--text2);margin-bottom:.6rem}
+.result-emoji{font-size:52px;margin-bottom:.4rem;display:block;animation:pop .4s ease}
+.result-name{font-family:'Fraunces',serif;font-size:40px;font-weight:700;color:var(--text);margin-bottom:.5rem;animation:pop .35s ease;line-height:1.1}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.result-meta{font-size:12px;color:var(--text2)}
+.result-btns{margin-top:1.1rem;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.result-btns .btn-done{background:var(--grad);color:#fff;border-color:transparent;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;box-shadow:0 2px 10px color-mix(in srgb,var(--a1) 30%,transparent);transition:all .15s}
+.result-btns .btn-done:hover{opacity:.9;transform:translateY(-1px)}
+.result-btns .btn-done:disabled{opacity:.5;cursor:default;transform:none}
+
+/* DURATION BADGES */
+.dur-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;flex-shrink:0}
+.dur-badge.kort{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46}
+.dur-badge.u12{background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1e40af}
+.dur-badge.halve{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e}
+.dur-badge.hele{background:linear-gradient(135deg,#ffe4e6,#fecdd3);color:#9f1239}
+.dur-btn{padding:5px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:500}
+.dur-btn.on.kort{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-color:#6ee7b7;color:#065f46;font-weight:700}
+.dur-btn.on.u12{background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-color:#93c5fd;color:#1e40af;font-weight:700}
+.dur-btn.on.halve{background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#fcd34d;color:#92400e;font-weight:700}
+.dur-btn.on.hele{background:linear-gradient(135deg,#ffe4e6,#fecdd3);border-color:#fda4af;color:#9f1239;font-weight:700}
+
+/* SEASON FILTER */
+.sf-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.5rem}
+.sf-btn{padding:6px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:var(--bg);color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;font-weight:500}
+.sf-btn.active[data-f="alle"]{background:var(--grad);color:#fff;border-color:transparent;font-weight:700}
+.sf-btn.active[data-f="lente"]{background:linear-gradient(135deg,#d4edda,#a8e6cf);border-color:#82c99a;color:#1a6b35;font-weight:700}
+.sf-btn.active[data-f="zomer"]{background:linear-gradient(135deg,#fff3cd,#ffe082);border-color:#f0c040;color:#7a5200;font-weight:700}
+.sf-btn.active[data-f="herfst"]{background:linear-gradient(135deg,#ffe5cc,#ffcc99);border-color:#e8934a;color:#7a3200;font-weight:700}
+.sf-btn.active[data-f="winter"]{background:linear-gradient(135deg,#d6eaff,#b3d4ff);border-color:#6aaee8;color:#0d3f75;font-weight:700}
+
+/* SEASON BANNER */
+.season-banner{display:block;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;margin:0 1rem .75rem;border:1.5px solid transparent;font-weight:500;line-height:1.5;background:var(--grad-soft);border-color:color-mix(in srgb,var(--a1) 30%,transparent);color:var(--text)}
+
+/* HISTORY */
+.history-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1.5px solid var(--border)}
+.history-item:last-child{border-bottom:none}
+.badge-done{font-size:11px;background:var(--grad);color:#fff;padding:2px 9px;border-radius:9px;font-weight:700}
+.reset-link{font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline}
+.reset-link:hover{color:var(--text)}
+
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1.5px solid var(--border)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:600}
+.setting-desc{font-size:12px;color:var(--text2);margin-top:2px}
+.setting-control{flex-shrink:0;margin-left:12px}
+.app-name-input{padding:7px 10px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;width:170px;background:var(--bg);color:var(--text);transition:border .15s,box-shadow .15s}
+.app-name-input:focus{outline:none;border-color:var(--a1);box-shadow:0 0 0 3px color-mix(in srgb,var(--a1) 20%,transparent)}
+
+/* MEMBER CHIPS */
+.member-chip{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;transition:border-color .15s}
+.member-chip.current{background:var(--grad);border-color:transparent}
+.member-chip.current .member-name{color:#fff;font-weight:700}
+.member-name{font-size:14px;font-weight:500}
+.member-avatar{font-size:20px;margin-right:9px}
+
+/* COLOR PICKER */
+.color-group{display:flex;flex-direction:column;gap:12px}
+.color-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.color-row-label{font-size:13px;color:var(--text);flex:1;font-weight:500}
+.color-row-label small{display:block;font-size:11px;color:var(--text2);font-weight:400}
+.color-picker-wrap{display:flex;align-items:center;gap:8px}
+.color-preview{width:30px;height:30px;border-radius:50%;border:2px solid var(--border2);cursor:pointer;position:relative;flex-shrink:0;transition:transform .15s;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.color-preview:hover{transform:scale(1.1)}
+input[type=color]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;border:none;padding:0}
+.color-hex{font-size:11px;font-family:monospace;color:var(--text2);width:58px}
+.preset-swatches{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.p-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s;flex-shrink:0}
+.p-swatch:hover{transform:scale(1.18)}
+.p-swatch.selected{border-color:var(--text);box-shadow:0 0 0 1px var(--bg),0 0 0 3px var(--text)}
+
+/* GRADIENT PREVIEW */
+.grad-preview{height:36px;border-radius:var(--radius-sm);background:var(--grad);margin-bottom:8px;border:1.5px solid var(--border)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--grad);color:#fff;padding:10px 22px;border-radius:30px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:999;transition:transform .3s ease,opacity .3s ease;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* THEME BUTTONS */
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
+.theme-btn{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;transition:all .15s;text-align:left}
+.theme-btn:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+
+/* DARK */
+body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1aa;--border:#3f3f46;--border2:#52525b}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="app-header">
+    <div class="app-title" id="app-title-display">🎟 Lootjes</div>
+    <div class="app-subtitle" id="app-subtitle-display">Trek een willekeurige activiteit voor het gezin.</div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" onclick="switchTab('trekken')">Trekken</div>
+    <div class="tab" onclick="switchTab('activiteiten')">Activiteiten</div>
+    <div class="tab" onclick="switchTab('geschiedenis')">Geschiedenis</div>
+    <div class="tab" onclick="switchTab('instellingen')">⚙️</div>
+  </div>
+
+  <!-- TREKKEN -->
+  <div id="tab-trekken" class="panel active">
+    <div id="season-banner" class="season-banner" style="display:none"></div>
+    <div id="beurt-card" class="beurt-card" style="display:none">
+      <div style="position:relative;z-index:1">
+        <div class="beurt-label">Nu aan de beurt</div>
+        <div class="beurt-name" id="beurt-name">—</div>
+        <div class="beurt-next" id="beurt-next"></div>
+      </div>
+      <div class="beurt-avatar" id="beurt-avatar">🎲</div>
+    </div>
+    <div class="card">
+      <div class="section-label">Periode</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:130px">
+          <label style="font-size:13px;color:var(--text2);white-space:nowrap">Van</label>
+          <input type="date" id="date-from" style="flex:1">
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:130px">
+          <label style="font-size:13px;color:var(--text2);white-space:nowrap">Tot</label>
+          <input type="date" id="date-to" style="flex:1">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Seizoensfilter</div>
+      <div class="sf-row">
+        <button class="sf-btn active" data-f="alle" onclick="setFilter('alle')">🗓 Alle</button>
+        <button class="sf-btn" data-f="lente" onclick="setFilter('lente')">🌸 Lente</button>
+        <button class="sf-btn" data-f="zomer" onclick="setFilter('zomer')">☀️ Zomer</button>
+        <button class="sf-btn" data-f="herfst" onclick="setFilter('herfst')">🍂 Herfst</button>
+        <button class="sf-btn" data-f="winter" onclick="setFilter('winter')">❄️ Winter</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2)" id="filter-count"></div>
+    </div>
+    <div class="card">
+      <div class="section-label">Hoeveel tijd hebben jullie?</div>
+      <div class="sf-row" id="dur-filter-row">
+        <button class="dur-btn on kort" data-d="alle" onclick="setDurFilter('alle')">🗓 Alle</button>
+        <button class="dur-btn" data-d="kort" onclick="setDurFilter('kort')">⚡ Kort (&lt;1u)</button>
+        <button class="dur-btn" data-d="u12" onclick="setDurFilter('u12')">🕐 1-2 uur</button>
+        <button class="dur-btn" data-d="halve" onclick="setDurFilter('halve')">🌤 Halve dag</button>
+        <button class="dur-btn" data-d="hele" onclick="setDurFilter('hele')">☀️ Hele dag</button>
+      </div>
+    </div>
+    <button class="draw-btn" id="draw-btn-main" onclick="drawLot()">Trek een lootje 🎲</button>
+    <div class="result-box" id="result-box">
+      <div class="result-period" id="result-period"></div>
+      <span class="result-emoji" id="result-emoji"></span>
+      <div class="result-name" id="result-name"></div>
+      <div class="result-meta" id="result-meta"></div>
+      <div class="result-btns">
+        <button id="done-btn" onclick="markDone()" class="btn-done">✓ Gedaan!</button>
+        <button onclick="drawLot()" class="btn">↺ Opnieuw</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITEITEN -->
+  <div id="tab-activiteiten" class="panel">
+    <div class="card">
+      <div class="section-label">Nieuwe activiteit</div>
+      <div class="add-row">
+        <input type="text" id="act-input" placeholder="bijv. Picknicken" onkeydown="if(event.key==='Enter')addActivity()">
+        <button class="btn btn-primary" onclick="addActivity()">+ Voeg toe</button>
+      </div>
+      <div class="section-label">Icoontje kiezen</div>
+      <div class="emoji-picker" id="new-emoji-picker"></div>
+      <div class="section-label">Duurtijd</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem" id="new-dur-row">
+        <button class="dur-btn" data-d="kort" onclick="selectNewDur('kort')">⚡ Kort (&lt;1u)</button>
+        <button class="dur-btn on halve" data-d="u12" onclick="selectNewDur('u12')">🕐 1-2 uur</button>
+        <button class="dur-btn" data-d="halve" onclick="selectNewDur('halve')">🌤 Halve dag</button>
+        <button class="dur-btn" data-d="hele" onclick="selectNewDur('hele')">☀️ Hele dag</button>
+      </div>
+      <div class="section-label">Seizoen</div>
+      <div class="season-toggle" id="new-seasons">
+        <button class="s-btn on" data-s="altijd" onclick="toggleNewSeason(this)">🗓 Altijd</button>
+        <button class="s-btn" data-s="lente" onclick="toggleNewSeason(this)">🌸 Lente</button>
+        <button class="s-btn" data-s="zomer" onclick="toggleNewSeason(this)">☀️ Zomer</button>
+        <button class="s-btn" data-s="herfst" onclick="toggleNewSeason(this)">🍂 Herfst</button>
+        <button class="s-btn" data-s="winter" onclick="toggleNewSeason(this)">❄️ Winter</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Alle activiteiten</div>
+      <div class="chips" id="chips-list"></div>
+    </div>
+  </div>
+
+  <!-- GESCHIEDENIS -->
+  <div id="tab-geschiedenis" class="panel">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="section-label" style="margin:0">Getrokken activiteiten</div>
+        <span class="reset-link" onclick="clearHistory()">Wis geschiedenis</span>
+      </div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- INSTELLINGEN -->
+  <div id="tab-instellingen" class="panel">
+
+    <div class="card">
+      <div class="section-label">Gezinsleden</div>
+      <div id="members-list"></div>
+      <div class="add-row" style="margin-top:.5rem;margin-bottom:0">
+        <input type="text" id="member-input" placeholder="Naam, bijv. Emma" onkeydown="if(event.key==='Enter')addMember()">
+        <input type="text" id="member-emoji" placeholder="🙂" style="width:60px;flex:none;text-align:center">
+        <button class="btn btn-primary" onclick="addMember()">+ Voeg toe</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Naam & teksten</div>
+      <div class="setting-row">
+        <div><div class="setting-label">App-naam</div><div class="setting-desc">Verschijnt bovenaan</div></div>
+        <div class="setting-control"><input type="text" class="app-name-input" id="setting-name" placeholder="🎟 Lootjes" oninput="updateAppName()"></div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Ondertitel</div></div>
+        <div class="setting-control"><input type="text" class="app-name-input" id="setting-subtitle" placeholder="Trek een activiteit!" oninput="updateSubtitle()"></div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Knoptekst</div></div>
+        <div class="setting-control"><input type="text" class="app-name-input" id="setting-btntext" placeholder="Trek een lootje 🎲" oninput="updateBtnText()"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Kleuren & kleurverloop</div>
+      <div class="grad-preview" id="grad-preview"></div>
+      <div class="color-group">
+        <div class="color-row">
+          <div class="color-row-label">Kleur 1<small>Startkleur verloop</small></div>
+          <div>
+            <div class="color-picker-wrap">
+              <div class="color-preview" id="prev-a1"><input type="color" id="pick-a1" oninput="setCol('a1',this.value)"></div>
+              <span class="color-hex" id="hex-a1">#1D9E75</span>
+            </div>
+            <div class="preset-swatches" id="ps-a1"></div>
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-row-label">Kleur 2<small>Eindkleur verloop</small></div>
+          <div>
+            <div class="color-picker-wrap">
+              <div class="color-preview" id="prev-a2"><input type="color" id="pick-a2" oninput="setCol('a2',this.value)"></div>
+              <span class="color-hex" id="hex-a2">#0ea5e9</span>
+            </div>
+            <div class="preset-swatches" id="ps-a2"></div>
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-row-label">Achtergrond<small>Paginakleur</small></div>
+          <div>
+            <div class="color-picker-wrap">
+              <div class="color-preview" id="prev-bg"><input type="color" id="pick-bg" oninput="setCol('bg',this.value)"></div>
+              <span class="color-hex" id="hex-bg">#ffffff</span>
+            </div>
+            <div class="preset-swatches" id="ps-bg"></div>
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-row-label">Kaartkleur<small>Achtergrond kaarten</small></div>
+          <div>
+            <div class="color-picker-wrap">
+              <div class="color-preview" id="prev-bg2"><input type="color" id="pick-bg2" oninput="setCol('bg2',this.value)"></div>
+              <span class="color-hex" id="hex-bg2">#f5f5f3</span>
+            </div>
+            <div class="preset-swatches" id="ps-bg2"></div>
+          </div>
+        </div>
+        <div class="color-row">
+          <div class="color-row-label">Tekst<small>Hoofdtekst</small></div>
+          <div>
+            <div class="color-picker-wrap">
+              <div class="color-preview" id="prev-text"><input type="color" id="pick-text" oninput="setCol('text',this.value)"></div>
+              <span class="color-hex" id="hex-text">#1a1a1a</span>
+            </div>
+            <div class="preset-swatches" id="ps-text"></div>
+          </div>
+        </div>
+      </div>
+      <div class="theme-grid" style="margin-top:1rem">
+        <button class="theme-btn" onclick="applyTheme('forest')" style="background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff;border-color:transparent">🌲 Forest</button>
+        <button class="theme-btn" onclick="applyTheme('ocean')" style="background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border-color:transparent">🌊 Ocean</button>
+        <button class="theme-btn" onclick="applyTheme('sunset')" style="background:linear-gradient(135deg,#f97316,#ec4899);color:#fff;border-color:transparent">🌅 Sunset</button>
+        <button class="theme-btn" onclick="applyTheme('candy')" style="background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border-color:transparent">🍬 Candy</button>
+        <button class="theme-btn" onclick="applyTheme('warm')" style="background:linear-gradient(135deg,#e8622a,#f0c040);color:#fff;border-color:transparent">🌻 Warm</button>
+        <button class="theme-btn" onclick="applyTheme('dark')" style="background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-color:transparent">🌙 Donker</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Gevaarlijke zone</div>
+      <div class="setting-row">
+        <div><div class="setting-label">Alle activiteiten wissen</div><div class="setting-desc">Verwijdert alles permanent</div></div>
+        <div class="setting-control"><button class="btn" onclick="clearAll()" style="color:#c0392b;border-color:#c0392b">Wis alles</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Opgeslagen!</div>
+
+<script>
+const SM={altijd:{label:'Altijd',emoji:'🗓'},lente:{label:'Lente',emoji:'🌸'},zomer:{label:'Zomer',emoji:'☀️'},herfst:{label:'Herfst',emoji:'🍂'},winter:{label:'Winter',emoji:'❄️'}};
+const DUR={kort:{label:'Kort',desc:'< 1 uur',emoji:'⚡'},u12:{label:'1-2 uur',desc:'een uurtje',emoji:'🕐'},halve:{label:'Halve dag',desc:'3-4 uur',emoji:'🌤'},hele:{label:'Hele dag',desc:'5+ uur',emoji:'☀️'}};
+const DUR_ORDER=['kort','u12','halve','hele'];
+const EMOJI_CATS={
+  '⭐ Top':['🎯','🧺','🥾','🚲','🏊','🍳','🎬','🎲','🏖️','⚽','🧘','🎵','⛸️','🎨','🎭','📚','🌄','🎪','🏕️','🛶','🍕','🧁','🎸','🌍','🤸','🎡','🏔️','🎉','🧩','🌈'],
+  '🏃 Buiten':['🧺','🥾','🚲','🏊','🏖️','⛷️','⛸️','🏕️','🛶','🏔️','🌄','🌊','🏄','🎣','🤿','🧗','🪂','⛺','🌲','🌸','🏇','🚵','🏌️','🤽','🚣','🎿','🛷','🪁','🏹','🌿'],
+  '🏠 Binnen':['🎲','🎮','📚','🎵','🎸','🎭','🎬','🧘','🍳','🧁','🍕','🎨','🎯','🧩','🃏','♟️','🎤','🎧','📷','🖼️','🧸','🪆','🪅','🎠','🧶','🪡','🎻','🥁','🎹','🎺'],
+  '⚽ Sport':['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🥏','🎱','🏓','🏸','🥊','🤼','🤸','🏋️','🤺','🚵','🤾','🏌️','🏊','🤽','🚣','🧗','⛷️','⛸️','🥋','🤼','🏇','🎿','🛹'],
+  '🍕 Eten':['🍕','🍔','🌮','🌯','🥗','🍜','🍱','🍣','🍩','🎂','🧁','🍪','🍦','🍰','🥧','🍫','🍬','🍭','🧃','☕','🍵','🧋','🥤','🍷','🍹','🧇','🥞','🥐','🍳','🥘'],
+  '🌿 Natuur':['🌸','🌺','🌻','🌹','🌷','🌲','🌳','🌴','🌵','🍀','🌿','🍁','🍂','🌾','🐶','🐱','🐻','🦊','🦁','🐘','🦒','🦓','🦋','🐠','🐝','🌈','⛅','🌙','☀️','❄️'],
+  '✨ Overig':['✨','🎉','🎊','🎈','🏆','🥇','🎁','💡','🔮','🪄','🌟','💫','🎶','🎡','🎢','🎟️','🚀','🛸','⭐','💎','🪩','🎠','🎪','🪐','🌠','🎆','🎇','🧨','🪔','💐'],
+};
+const EMOJI_OPTIONS=Object.values(EMOJI_CATS).flat();
+
+const SWATCH_COLORS={
+  a1:['#1D9E75','#16a34a','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#e8622a'],
+  a2:['#0ea5e9','#4ade80','#818cf8','#c084fc','#f472b6','#fb923c','#f0c040','#34d399'],
+  bg:['#ffffff','#f8f8f6','#fdf6ee','#f0f9ff','#f0fdf4','#fdf4ff','#18181b','#0f172a'],
+  bg2:['#f5f5f3','#ebebea','#f5e9d8','#e0f2fe','#dcfce7','#f3e8ff','#27272a','#1e293b'],
+  text:['#1a1a1a','#111827','#2d1a0e','#0c4a6e','#14532d','#581c87','#f4f4f5','#f8fafc'],
+};
+
+const THEMES={
+  forest:{a1:'#16a34a',a2:'#4ade80',bg:'#f0fdf4',bg2:'#dcfce7',text:'#14532d',text2:'#166534'},
+  ocean:{a1:'#0ea5e9',a2:'#6366f1',bg:'#f0f9ff',bg2:'#e0f2fe',text:'#0c4a6e',text2:'#0369a1'},
+  sunset:{a1:'#f97316',a2:'#ec4899',bg:'#fff7ed',bg2:'#ffedd5',text:'#431407',text2:'#9a3412'},
+  candy:{a1:'#a855f7',a2:'#ec4899',bg:'#fdf4ff',bg2:'#f3e8ff',text:'#581c87',text2:'#7e22ce'},
+  warm:{a1:'#e8622a',a2:'#f0c040',bg:'#fdf6ee',bg2:'#f5e9d8',text:'#2d1a0e',text2:'#8b5e3c'},
+  dark:{a1:'#34d399',a2:'#818cf8',bg:'#18181b',bg2:'#27272a',text:'#f4f4f5',text2:'#a1a1aa'},
+};
+
+const KEY_ACTS='loot-acts4', KEY_HIST='loot-hist4', KEY_SET='loot-settings6', KEY_MEM='loot-members1';
+
+function loadDefault(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch{return def;}}
+
+let activities=loadDefault(KEY_ACTS,[
+  {name:'Picknicken',emoji:'🧺',seasons:['lente','zomer'],dur:'halve'},
+  {name:'Wandelen in het park',emoji:'🥾',seasons:['altijd'],dur:'u12'},
+  {name:'Fietsen',emoji:'🚲',seasons:['lente','zomer','herfst'],dur:'halve'},
+  {name:'Spelletjesavond',emoji:'🎲',seasons:['altijd'],dur:'u12'},
+  {name:'Samen koken',emoji:'🍳',seasons:['altijd'],dur:'u12'},
+  {name:'Kleien',emoji:'🎨',seasons:['altijd'],dur:'kort'},
+  {name:'Schaatsen',emoji:'⛸️',seasons:['winter'],dur:'halve'},
+  {name:'Naar het strand',emoji:'🏖️',seasons:['zomer'],dur:'hele'}
+]);
+
+let members=loadDefault(KEY_MEM,[]);
+let history=loadDefault(KEY_HIST,[]);
+let settings=loadDefault(KEY_SET,{
+  name:'🎟 Lootjes',
+  subtitle:'Trek een willekeurige activiteit voor het gezin.',
+  btntext:'Trek een lootje 🎲',
+  currentMember:0,
+  colors:{a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'}
+});
+if(!settings.colors)settings.colors={a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'};
+if(!settings.currentMember)settings.currentMember=0;
+
+let currentDraw=null, activeFilter='alle', activeDurFilter='alle', newSeasons=['altijd'], newEmoji='🎯', newDuration='halve', editingIndex=null;
+
+function save(){
+  try{
+    localStorage.setItem(KEY_ACTS,JSON.stringify(activities));
+    localStorage.setItem(KEY_HIST,JSON.stringify(history));
+    localStorage.setItem(KEY_SET,JSON.stringify(settings));
+    localStorage.setItem(KEY_MEM,JSON.stringify(members));
+  }catch(e){console.warn('Opslaan mislukt',e);}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg||'✓ Opgeslagen!';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ─── COLORS ─── */
+function applyColors(c){
+  c=c||settings.colors;
+  const r=document.documentElement.style;
+  r.setProperty('--a1',c.a1);
+  r.setProperty('--a2',c.a2);
+  r.setProperty('--a1-dark',darken(c.a1,20));
+  r.setProperty('--bg',c.bg);
+  r.setProperty('--bg2',c.bg2);
+  r.setProperty('--bg3',blend(c.bg2,c.text,.08));
+  r.setProperty('--text',c.text);
+  r.setProperty('--text2',c.text2||blend(c.text,c.bg,.4));
+  r.setProperty('--border',blend(c.bg,c.text,.12));
+  r.setProperty('--border2',blend(c.bg,c.text,.22));
+  // update pickers
+  ['a1','a2','bg','bg2','text'].forEach(k=>{
+    const prev=document.getElementById(`prev-${k}`);
+    const pick=document.getElementById(`pick-${k}`);
+    const hex=document.getElementById(`hex-${k}`);
+    if(prev)prev.style.background=c[k];
+    if(pick)pick.value=c[k];
+    if(hex)hex.textContent=c[k];
+  });
+  const gp=document.getElementById('grad-preview');
+  if(gp)gp.style.background=`linear-gradient(135deg,${c.a1} 0%,${c.a2} 100%)`;
+  buildSwatches();
+  if(document.body.classList){document.body.classList.toggle('dark',luma(c.bg)<100);}
+}
+
+function darken(hex,pct){
+  try{let n=parseInt(hex.replace('#',''),16);let r=Math.max(0,(n>>16)-pct*2),g=Math.max(0,((n>>8)&0xff)-pct*2),b=Math.max(0,(n&0xff)-pct*2);return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}catch{return hex;}
+}
+function blend(h1,h2,t){
+  try{const p=x=>parseInt(x,16),h=s=>[p(s.slice(1,3)),p(s.slice(3,5)),p(s.slice(5,7))];const[r1,g1,b1]=h(h1);const[r2,g2,b2]=h(h2);return '#'+[Math.round(r1+(r2-r1)*t),Math.round(g1+(g2-g1)*t),Math.round(b1+(b2-b1)*t)].map(x=>x.toString(16).padStart(2,'0')).join('');}catch{return h1;}
+}
+function luma(hex){try{const n=parseInt(hex.replace('#',''),16),r=n>>16,g=(n>>8)&0xff,b=n&0xff;return .299*r+.587*g+.114*b;}catch{return 255;}}
+
+function setCol(key,val){
+  settings.colors[key]=val;
+  applyColors();
+  save();
+}
+
+function applyTheme(name){
+  settings.colors={...THEMES[name]};
+  applyColors();
+  save();
+  showToast('🎨 Thema toegepast!');
+}
+
+function buildSwatches(){
+  Object.entries(SWATCH_COLORS).forEach(([k,cols])=>{
+    const el=document.getElementById(`ps-${k}`);
+    if(!el)return;
+    const cur=(settings.colors?.[k]||'').toLowerCase();
+    el.innerHTML=cols.map(c=>`<div class="p-swatch${c.toLowerCase()===cur?' selected':''}" style="background:${c}" title="${c}" onclick="setCol('${k}','${c}')"></div>`).join('');
+  });
+}
+
+/* ─── SETTINGS TEXT ─── */
+function applySettings(){
+  document.getElementById('app-title-display').textContent=settings.name||'🎟 Lootjes';
+  document.getElementById('app-subtitle-display').textContent=settings.subtitle||'';
+  document.getElementById('setting-name').value=settings.name||'';
+  document.getElementById('setting-subtitle').value=settings.subtitle||'';
+  document.getElementById('setting-btntext').value=settings.btntext||'';
+  const btn=document.getElementById('draw-btn-main');
+  if(btn)btn.textContent=settings.btntext||'Trek een lootje 🎲';
+  applyColors(settings.colors);
+}
+function updateAppName(){settings.name=document.getElementById('setting-name').value;document.getElementById('app-title-display').textContent=settings.name||'🎟 Lootjes';save();showToast();}
+function updateSubtitle(){settings.subtitle=document.getElementById('setting-subtitle').value;document.getElementById('app-subtitle-display').textContent=settings.subtitle||'';save();showToast();}
+function updateBtnText(){settings.btntext=document.getElementById('setting-btntext').value;const btn=document.getElementById('draw-btn-main');if(btn)btn.textContent=settings.btntext||'Trek een lootje 🎲';save();showToast();}
+
+/* ─── MEMBERS ─── */
+function addMember(){
+  const name=document.getElementById('member-input').value.trim();
+  const emoji=document.getElementById('member-emoji').value.trim()||'🙂';
+  if(!name)return;
+  members.push({name,emoji});
+  save();renderMembers();updateBeurtCard();
+  document.getElementById('member-input').value='';
+  document.getElementById('member-emoji').value='';
+  showToast('👤 Gezinslid toegevoegd!');
+}
+function removeMember(i){
+  members.splice(i,1);
+  if(settings.currentMember>=members.length)settings.currentMember=0;
+  save();renderMembers();updateBeurtCard();
+}
+function renderMembers(){
+  const el=document.getElementById('members-list');
+  if(!members.length){el.innerHTML='<p class="empty-hint" style="margin-bottom:.5rem">Voeg gezinsleden toe om beurten bij te houden.</p>';return;}
+  el.innerHTML=members.map((m,i)=>`
+    <div class="member-chip${i===settings.currentMember?' current':''}">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font-size:20px">${m.emoji||'🙂'}</span>
+        <span class="member-name">${m.name}</span>
+        ${i===settings.currentMember?'<span style="font-size:11px;background:rgba(255,255,255,.25);color:#fff;padding:2px 8px;border-radius:8px;font-weight:700">aan de beurt</span>':''}
+      </div>
+      <button onclick="removeMember(${i})" style="background:none;border:none;cursor:pointer;font-size:16px;opacity:.6;padding:4px">✕</button>
+    </div>`).join('');
+}
+function updateBeurtCard(){
+  const card=document.getElementById('beurt-card');
+  if(!members.length){card.style.display='none';return;}
+  card.style.display='flex';
+  const cur=members[settings.currentMember]||members[0];
+  const nextIdx=(settings.currentMember+1)%members.length;
+  const next=members[nextIdx];
+  document.getElementById('beurt-name').textContent=cur.name;
+  document.getElementById('beurt-avatar').textContent=cur.emoji||'🎲';
+  document.getElementById('beurt-next').textContent=members.length>1?`Daarna: ${next.name}`:'';
+}
+function advanceTurn(){
+  if(!members.length)return;
+  settings.currentMember=(settings.currentMember+1)%members.length;
+  save();updateBeurtCard();renderMembers();
+}
+
+/* ─── EMOJI PICKER ─── */
+const emojiCatKeys=Object.keys(EMOJI_CATS);
+let activeCat={};  // pickerId -> active category key
+
+function buildEmojiPicker(id,sel,onSelectFn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const cat=activeCat[id]||emojiCatKeys[0];
+  activeCat[id]=cat;
+  const emojis=EMOJI_CATS[cat];
+  const catBtns=emojiCatKeys.map(k=>`<button class="ecat-btn${k===cat?' active':''}" onclick="switchEmojiCat('${id}','${k}','${sel}','${onSelectFn}')">${k}</button>`).join('');
+  const grid=emojis.map(e=>`<div class="emoji-opt${e===sel?' selected':''}" onclick="${onSelectFn}('${e}')">${e}</div>`).join('');
+  el.innerHTML=`<div class="emoji-cats">${catBtns}</div><div style="display:flex;flex-wrap:wrap;gap:5px">${grid}</div>`;
+}
+function switchEmojiCat(id,cat,sel,fn){activeCat[id]=cat;buildEmojiPicker(id,sel,fn);}
+function selectNewEmoji(e){newEmoji=e;buildEmojiPicker('new-emoji-picker',newEmoji,'selectNewEmoji');}
+function selectEditEmoji(e,i){
+  newEmoji=e;
+  document.querySelectorAll(`#ep-${i} .emoji-opt`).forEach(el=>el.classList.toggle('selected',el.textContent.trim()===e));
+}
+
+/* ─── SEASON LOGIC ─── */
+function getCurrentSeason(){const m=new Date().getMonth()+1;if(m>=3&&m<=5)return 'lente';if(m>=6&&m<=8)return 'zomer';if(m>=9&&m<=11)return 'herfst';return 'winter';}
+function seasonMatch(act,f){return f==='alle'||act.seasons.includes(f)||act.seasons.includes('altijd');}
+function durMatch(act,d){
+  if(d==='alle')return true;
+  const actIdx=DUR_ORDER.indexOf(act.dur||'halve');
+  const filterIdx=DUR_ORDER.indexOf(d);
+  return actIdx<=filterIdx;
+}
+function actMatch(act,sf,df){return seasonMatch(act,sf)&&durMatch(act,df);}
+function updateFilterCount(){
+  const n=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter)).length;
+  document.getElementById('filter-count').textContent=`${n} activiteit${n!==1?'en':''} beschikbaar`;
+}
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('.sf-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
+  updateFilterCount();
+  document.getElementById('result-box').classList.remove('show');
+}
+
+/* ─── DURATION FILTER ─── */
+function setDurFilter(d){
+  activeDurFilter=d;
+  document.querySelectorAll('#dur-filter-row .dur-btn').forEach(b=>{
+    const k=b.dataset.d;
+    b.classList.remove('on','kort','u12','halve','hele');
+    if(k===d){b.classList.add('on');if(k!=='alle')b.classList.add(k);}
+  });
+  updateFilterCount();
+  document.getElementById('result-box').classList.remove('show');
+}
+function selectNewDur(d){
+  newDuration=d;
+  document.querySelectorAll('#new-dur-row .dur-btn').forEach(b=>{
+    b.classList.remove('on','kort','u12','halve','hele');
+    if(b.dataset.d===d){b.classList.add('on',d);}
+  });
+}
+
+/* ─── NEW SEASON TOGGLE ─── */
+function toggleNewSeason(btn){
+  const s=btn.dataset.s;
+  if(s==='altijd'){newSeasons=['altijd'];}
+  else{newSeasons=newSeasons.filter(x=>x!=='altijd');newSeasons.includes(s)?newSeasons=newSeasons.filter(x=>x!==s):newSeasons.push(s);if(!newSeasons.length)newSeasons=['altijd'];}
+  document.querySelectorAll('#new-seasons .s-btn').forEach(b=>b.classList.toggle('on',newSeasons.includes(b.dataset.s)));
+}
+
+/* ─── ACTIVITIES ─── */
+function addActivity(){
+  const inp=document.getElementById('act-input');
+  const val=inp.value.trim();
+  if(!val)return;
+  activities.push({name:val,emoji:newEmoji,seasons:[...newSeasons],dur:newDuration});
+  save();renderChips();updateFilterCount();
+  inp.value='';inp.focus();
+  showToast('✓ Activiteit toegevoegd!');
+}
+function removeActivity(i){
+  if(editingIndex===i)editingIndex=null;
+  activities.splice(i,1);
+  save();renderChips();updateFilterCount();
+}
+let editEmojiIndex=null;
+function selectEditEmojiWrapper(e){selectEditEmoji(e,editEmojiIndex);}
+function startEdit(i){
+  editEmojiIndex=i;editingIndex=i;renderChips();
+  setTimeout(()=>{
+    buildEmojiPicker(`ep-${i}`,activities[i].emoji||'🎯','selectEditEmojiWrapper');
+    const inp=document.getElementById(`ei-${i}`);if(inp)inp.focus();
+  },50);
+}
+function cancelEdit(){editingIndex=null;editEmojiIndex=null;renderChips();}
+function selectEditEmoji(e,i){document.querySelectorAll(`#ep-${i} .emoji-opt`).forEach(el=>el.classList.toggle('selected',el.textContent.trim()===e));}
+function saveEdit(i){
+  const inp=document.getElementById(`ei-${i}`);
+  const val=inp?inp.value.trim():'';
+  if(!val)return;
+  const sel=document.querySelector(`#ep-${i} .emoji-opt.selected`);
+  const emoji=sel?sel.textContent:activities[i].emoji||'🎯';
+  const edited=[];
+  document.querySelectorAll(`#es-${i} .s-btn.on`).forEach(b=>edited.push(b.dataset.s));
+  const durSel=document.querySelector(`#ed-${i} .dur-btn.on`);
+  const dur=durSel?durSel.dataset.d:activities[i].dur||'halve';
+  activities[i]={name:val,emoji,seasons:edited.length?edited:['altijd'],dur};
+  editingIndex=null;
+  save();renderChips();updateFilterCount();
+  showToast('✓ Opgeslagen!');
+}
+function toggleEditSeason(btn,i){
+  const s=btn.dataset.s;
+  const container=document.getElementById(`es-${i}`);
+  const btns=container.querySelectorAll('.s-btn');
+  if(s==='altijd'){btns.forEach(b=>b.classList.toggle('on',b.dataset.s==='altijd'));}
+  else{
+    container.querySelector('[data-s="altijd"]').classList.remove('on');
+    btn.classList.toggle('on');
+    if(![...btns].some(b=>b.dataset.s!=='altijd'&&b.classList.contains('on')))container.querySelector('[data-s="altijd"]').classList.add('on');
+  }
+}
+
+function renderChips(){
+  const el=document.getElementById('chips-list');
+  if(!activities.length){el.innerHTML='<span class="empty-hint">Nog geen activiteiten.</span>';return;}
+  el.innerHTML=activities.map((a,i)=>{
+    const isEditing=editingIndex===i;
+    const curDur=a.dur||'halve';
+    const dots=a.seasons.map(s=>`<span class="s-dot ${s}">${SM[s].emoji}</span>`).join('');
+    const durBadge=`<span class="dur-badge ${curDur}">${DUR[curDur].emoji} ${DUR[curDur].label}</span>`;
+    if(isEditing){
+      const sbtns=['altijd','lente','zomer','herfst','winter'].map(s=>`<button class="s-btn${a.seasons.includes(s)?' on':''}" data-s="${s}" onclick="toggleEditSeason(this,${i})">${SM[s].emoji} ${SM[s].label}</button>`).join('');
+      const dbtns=DUR_ORDER.map(d=>`<button class="dur-btn${d===curDur?' on '+d:''}" data-d="${d}" onclick="this.closest('.edit-form').querySelectorAll('.dur-btn').forEach(b=>{b.classList.remove('on','kort','u12','halve','hele')});this.classList.add('on','${d}')">${DUR[d].emoji} ${DUR[d].label}</button>`).join('');
+      return `<div class="chip">
+        <div class="chip-row"><div class="chip-left" style="font-size:13px;color:var(--text2)">✏️ Bewerken</div></div>
+        <div class="edit-form">
+          <input type="text" id="ei-${i}" value="${a.name.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveEdit(${i});if(event.key==='Escape')cancelEdit()">
+          <div class="section-label">Icoontje</div><div id="ep-${i}"></div>
+          <div class="section-label">Duurtijd</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem" id="ed-${i}">${dbtns}</div>
+          <div class="section-label">Seizoen</div><div class="season-toggle" id="es-${i}">${sbtns}</div>
+          <div class="edit-actions">
+            <button class="btn btn-primary" onclick="saveEdit(${i})">✓ Opslaan</button>
+            <button class="btn" onclick="cancelEdit()">Annuleer</button>
+          </div>
+        </div></div>`;
+    }
+    return `<div class="chip">
+      <div class="chip-row">
+        <div class="chip-left">
+          <span style="font-size:20px">${a.emoji||'🎯'}</span>
+          <span class="chip-name">${a.name}</span>
+          <div class="chip-dots">${durBadge}${dots}</div>
+        </div>
+        <div class="chip-actions">
+          <button onclick="startEdit(${i})">✏️</button>
+          <button onclick="removeActivity(${i})">✕</button>
+        </div>
+      </div></div>`;
+  }).join('');
+}
+
+/* ─── DRAW ─── */
+function formatDate(d){return d?d.split('-').reverse().join('-'):''}
+function drawLot(){
+  const pool=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter));
+  if(!pool.length){alert('Geen activiteiten voor dit filter!');switchTab('activiteiten');return;}
+  const recent=history.slice(-3).map(h=>h.name);
+  const avail=pool.filter(a=>!recent.includes(a.name)||pool.length<=3);
+  const src=avail.length?avail:pool;
+  const picked=src[Math.floor(Math.random()*src.length)];
+  const from=document.getElementById('date-from').value;
+  const to=document.getElementById('date-to').value;
+  let period='';
+  if(from&&to)period=`${formatDate(from)} – ${formatDate(to)}`;
+  else if(from)period=`Vanaf ${formatDate(from)}`;
+  const drawnBy=members.length?members[settings.currentMember]?.name:null;
+  currentDraw={name:picked.name,emoji:picked.emoji||'🎯',seasons:picked.seasons,date:new Date().toLocaleDateString('nl-NL'),done:false,period,drawnBy};
+  const sLabels=picked.seasons.map(s=>SM[s].emoji+' '+SM[s].label).join(', ');
+  const durInfo=DUR[picked.dur||'halve'];
+  document.getElementById('result-emoji').textContent=picked.emoji||'🎯';
+  document.getElementById('result-name').textContent=picked.name;
+  document.getElementById('result-period').textContent=period?`📅 ${period}`:'';
+  document.getElementById('result-meta').textContent=`${durInfo.emoji} ${durInfo.label} · ${sLabels} · ${pool.length} activiteiten${drawnBy?' · '+drawnBy:''}`;
+  const db=document.getElementById('done-btn');
+  db.disabled=false;db.textContent='✓ Gedaan!';
+  const box=document.getElementById('result-box');
+  box.classList.remove('show');void box.offsetWidth;box.classList.add('show');
+}
+
+function markDone(){
+  if(!currentDraw)return;
+  currentDraw.done=true;history.push({...currentDraw});save();renderHistory();
+  document.getElementById('result-meta').textContent='✓ Gemarkeerd als gedaan! 🎉';
+  const db=document.getElementById('done-btn');db.disabled=true;db.textContent='✓ Gedaan!';
+  if(members.length)advanceTurn();
+  showToast('🎉 Activiteit gedaan!');
+}
+
+/* ─── HISTORY ─── */
+function clearHistory(){if(!confirm('Wis je de hele geschiedenis?'))return;history=[];save();renderHistory();}
+function clearAll(){if(!confirm('Wil je ALLE activiteiten verwijderen?'))return;activities=[];save();renderChips();updateFilterCount();}
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!history.length){el.innerHTML='<p class="empty-hint">Nog geen getrokken activiteiten.</p>';return;}
+  el.innerHTML=[...history].reverse().map(h=>`
+    <div class="history-item">
+      <div>
+        <div style="font-weight:600">${h.emoji||'🎯'} ${h.name}</div>
+        ${h.period?`<div style="font-size:12px;color:var(--text2)">${h.period}</div>`:''}
+        ${h.drawnBy?`<div style="font-size:11px;color:var(--text2)">👤 ${h.drawnBy}</div>`:''}
+        ${h.dur?`<div style="font-size:11px;color:var(--text2)">${DUR[h.dur].emoji} ${DUR[h.dur].label}</div>`:''}
+        ${h.seasons?`<div style="font-size:11px;color:var(--text2)">${h.seasons.map(s=>SM[s].emoji+' '+SM[s].label).join(', ')}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span style="font-size:12px;color:var(--text2)">${h.date}</span>
+        ${h.done?'<span class="badge-done">gedaan ✓</span>':''}
+      </div>
+    </div>`).join('');
+}
+
+/* ─── TABS ─── */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['trekken','activiteiten','geschiedenis','instellingen'][i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='geschiedenis')renderHistory();
+  if(name==='activiteiten')renderChips();
+  if(name==='instellingen'){renderMembers();buildSwatches();}
+}
+
+/* ─── INIT ─── */
+const today=new Date();
+const nextWeek=new Date();nextWeek.setDate(today.getDate()+7);
+document.getElementById('date-from').value=today.toISOString().slice(0,10);
+document.getElementById('date-to').value=nextWeek.toISOString().slice(0,10);
+
+const cs=getCurrentSeason();
+const banner=document.getElementById('season-banner');
+banner.className=`season-banner ${cs}`;
+banner.innerHTML=`<div style="font-weight:700;font-size:14px;margin-bottom:2px">${SM[cs].emoji} Het is nu ${SM[cs].label}</div><div style="font-weight:400;opacity:.85">Pas het seizoensfilter aan voor meer passende activiteiten.</div>`;
+banner.style.display='block';
+
+buildEmojiPicker('new-emoji-picker',newEmoji,'selectNewEmoji');
+selectNewDur('halve');
+setDurFilter('alle');
+applySettings();
+updateFilterCount();
+renderChips();
+renderHistory();
+updateBeurtCard();
+</script>
+</body>
+</html>
