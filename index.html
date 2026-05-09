@@ -127,6 +127,21 @@ input:focus{outline:none;border-color:var(--a1);box-shadow:0 0 0 3px color-mix(i
 .result-btns .btn-done:hover{opacity:.9;transform:translateY(-1px)}
 .result-btns .btn-done:disabled{opacity:.5;cursor:default;transform:none}
 
+/* FREQUENCY BADGES */
+.freq-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;flex-shrink:0}
+.freq-badge.altijd{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.freq-badge.week{background:linear-gradient(135deg,#ede9fe,#ddd6fe);color:#5b21b6}
+.freq-badge.maand{background:linear-gradient(135deg,#fce7f3,#fbcfe8);color:#9d174d}
+.freq-badge.kwartaal{background:linear-gradient(135deg,#fff7ed,#fed7aa);color:#9a3412}
+.freq-badge.eenmalig{background:linear-gradient(135deg,#fef9c3,#fef08a);color:#854d0e}
+.freq-badge.eenmalig-done{background:var(--bg3);color:var(--text2);text-decoration:line-through;border:1px solid var(--border)}
+.freq-btn{padding:5px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:500}
+.freq-btn.on.altijd{background:var(--bg3);border-color:var(--border2);color:var(--text);font-weight:700}
+.freq-btn.on.week{background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-color:#a78bfa;color:#5b21b6;font-weight:700}
+.freq-btn.on.maand{background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-color:#f9a8d4;color:#9d174d;font-weight:700}
+.freq-btn.on.kwartaal{background:linear-gradient(135deg,#fff7ed,#fed7aa);border-color:#fdba74;color:#9a3412;font-weight:700}
+.freq-btn.on.eenmalig{background:linear-gradient(135deg,#fef9c3,#fef08a);border-color:#fde047;color:#854d0e;font-weight:700}
+
 /* DURATION BADGES */
 .dur-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;flex-shrink:0}
 .dur-badge.kort{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46}
@@ -382,6 +397,14 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
       </div>
       <div class="section-label">Icoontje kiezen</div>
       <div class="emoji-picker" id="new-emoji-picker"></div>
+      <div class="section-label">Frequentie</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem" id="new-freq-row">
+        <button class="freq-btn on altijd" data-f="altijd" onclick="selectNewFreq('altijd')">♾️ Altijd</button>
+        <button class="freq-btn" data-f="week" onclick="selectNewFreq('week')">📅 Wekelijks</button>
+        <button class="freq-btn" data-f="maand" onclick="selectNewFreq('maand')">🗓️ Maandelijks</button>
+        <button class="freq-btn" data-f="kwartaal" onclick="selectNewFreq('kwartaal')">📆 Per kwartaal</button>
+        <button class="freq-btn" data-f="eenmalig" onclick="selectNewFreq('eenmalig')">⭐ Eenmalig</button>
+      </div>
       <div class="section-label">Duurtijd</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem" id="new-dur-row">
         <button class="dur-btn" data-d="kort" onclick="selectNewDur('kort')">⚡ Kort (&lt;1u)</button>
@@ -605,6 +628,8 @@ document.addEventListener('click',e=>{
 const SM={altijd:{label:'Altijd',emoji:'🗓'},lente:{label:'Lente',emoji:'🌸'},zomer:{label:'Zomer',emoji:'☀️'},herfst:{label:'Herfst',emoji:'🍂'},winter:{label:'Winter',emoji:'❄️'}};
 const DUR={kort:{label:'Kort',desc:'< 1 uur',emoji:'⚡'},u12:{label:'1-2 uur',desc:'een uurtje',emoji:'🕐'},halve:{label:'Halve dag',desc:'3-4 uur',emoji:'🌤'},hele:{label:'Hele dag',desc:'5+ uur',emoji:'☀️'}};
 const DUR_ORDER=['kort','u12','halve','hele'];
+const FREQ={altijd:{label:'Altijd',emoji:'♾️',days:0},week:{label:'Wekelijks',emoji:'📅',days:7},maand:{label:'Maandelijks',emoji:'🗓️',days:30},kwartaal:{label:'Per kwartaal',emoji:'📆',days:90},eenmalig:{label:'Eenmalig',emoji:'⭐',days:null}};
+const FREQ_ORDER=['altijd','week','maand','kwartaal','eenmalig'];
 const EMOJI_CATS={
   '⭐ Top':['🎯','🧺','🥾','🚲','🏊','🍳','🎬','🎲','🏖️','⚽','🧘','🎵','⛸️','🎨','🎭','📚','🌄','🎪','🏕️','🛶','🍕','🧁','🎸','🌍','🤸','🎡','🏔️','🎉','🧩','🌈'],
   '🏃 Buiten':['🧺','🥾','🚲','🏊','🏖️','⛷️','⛸️','🏕️','🛶','🏔️','🌄','🌊','🏄','🎣','🤿','🧗','🪂','⛺','🌲','🌸','🏇','🚵','🏌️','🤽','🚣','🎿','🛷','🪁','🏹','🌿'],
@@ -662,7 +687,7 @@ let settings=loadDefault(KEY_SET,{
 if(!settings.colors)settings.colors={a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'};
 if(!settings.currentMember)settings.currentMember=0;
 
-let currentDraw=null, activeFilter='alle', activeDurFilter='alle', newSeasons=['altijd'], newEmoji='🎯', newDuration='halve', editingIndex=null;
+let currentDraw=null, activeFilter='alle', activeDurFilter='alle', newSeasons=['altijd'], newEmoji='🎯', newDuration='halve', newFreq='altijd', editingIndex=null;
 
 function save(){
   try{
@@ -860,6 +885,25 @@ function selectNewDur(d){
     if(b.dataset.d===d){b.classList.add('on',d);}
   });
 }
+function selectNewFreq(f){
+  newFreq=f;
+  document.querySelectorAll('#new-freq-row .freq-btn').forEach(b=>{
+    b.classList.remove('on','altijd','week','maand','kwartaal','eenmalig');
+    if(b.dataset.f===f){b.classList.add('on',f);}
+  });
+}
+
+/* ─── FREQUENCY CHECK ─── */
+function freqAvailable(act){
+  const f=act.freq||'altijd';
+  if(f==='altijd')return true;
+  const done=history.filter(h=>h.name===act.name&&h.done);
+  if(!done.length)return true;
+  if(f==='eenmalig')return false;
+  const lastDate=new Date(done[done.length-1].timestamp||0);
+  const daysSince=(Date.now()-lastDate)/86400000;
+  return daysSince>=FREQ[f].days;
+}
 
 /* ─── NEW SEASON TOGGLE ─── */
 function toggleNewSeason(btn){
@@ -874,7 +918,7 @@ function addActivity(){
   const inp=document.getElementById('act-input');
   const val=inp.value.trim();
   if(!val)return;
-  activities.push({name:val,emoji:newEmoji,seasons:[...newSeasons],dur:newDuration});
+  activities.push({name:val,emoji:newEmoji,seasons:[...newSeasons],dur:newDuration,freq:newFreq});
   save();renderChips();updateFilterCount();
   inp.value='';inp.focus();
   showToast('✓ Activiteit toegevoegd!');
@@ -905,7 +949,9 @@ function saveEdit(i){
   document.querySelectorAll(`#es-${i} .s-btn.on`).forEach(b=>edited.push(b.dataset.s));
   const durSel=document.querySelector(`#ed-${i} .dur-btn.on`);
   const dur=durSel?durSel.dataset.d:activities[i].dur||'halve';
-  activities[i]={name:val,emoji,seasons:edited.length?edited:['altijd'],dur};
+  const freqSel=document.querySelector(`#ef-${i} .freq-btn.on`);
+  const freq=freqSel?freqSel.dataset.f:activities[i].freq||'altijd';
+  activities[i]={name:val,emoji,seasons:edited.length?edited:['altijd'],dur,freq};
   editingIndex=null;
   save();renderChips();updateFilterCount();
   showToast('✓ Opgeslagen!');
@@ -928,8 +974,11 @@ function renderChips(){
   el.innerHTML=activities.map((a,i)=>{
     const isEditing=editingIndex===i;
     const curDur=a.dur||'halve';
+    const curFreq=a.freq||'altijd';
+    const isEenmaligDone=curFreq==='eenmalig'&&history.some(h=>h.name===a.name&&h.done);
     const dots=a.seasons.map(s=>`<span class="s-dot ${s}">${SM[s].emoji}</span>`).join('');
     const durBadge=`<span class="dur-badge ${curDur}">${DUR[curDur].emoji} ${DUR[curDur].label}</span>`;
+    const freqBadge=curFreq!=='altijd'?`<span class="freq-badge ${isEenmaligDone?'eenmalig-done':curFreq}">${FREQ[curFreq].emoji} ${isEenmaligDone?'Gedaan':FREQ[curFreq].label}</span>`:'';
     if(isEditing){
       const sbtns=['altijd','lente','zomer','herfst','winter'].map(s=>`<button class="s-btn${a.seasons.includes(s)?' on':''}" data-s="${s}" onclick="toggleEditSeason(this,${i})">${SM[s].emoji} ${SM[s].label}</button>`).join('');
       const dbtns=DUR_ORDER.map(d=>`<button class="dur-btn${d===curDur?' on '+d:''}" data-d="${d}" onclick="this.closest('.edit-form').querySelectorAll('.dur-btn').forEach(b=>{b.classList.remove('on','kort','u12','halve','hele')});this.classList.add('on','${d}')">${DUR[d].emoji} ${DUR[d].label}</button>`).join('');
@@ -938,6 +987,7 @@ function renderChips(){
         <div class="edit-form">
           <input type="text" id="ei-${i}" value="${a.name.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveEdit(${i});if(event.key==='Escape')cancelEdit()">
           <div class="section-label">Icoontje</div><div id="ep-${i}"></div>
+          <div class="section-label">Frequentie</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem" id="ef-${i}">${FREQ_ORDER.map(f=>`<button class="freq-btn${f===curFreq?' on '+f:''}" data-f="${f}" onclick="this.closest('.edit-form').querySelectorAll('.freq-btn').forEach(b=>{b.classList.remove('on','altijd','week','maand','kwartaal','eenmalig')});this.classList.add('on','${f}')">${FREQ[f].emoji} ${FREQ[f].label}</button>`).join('')}</div>
           <div class="section-label">Duurtijd</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem" id="ed-${i}">${dbtns}</div>
           <div class="section-label">Seizoen</div><div class="season-toggle" id="es-${i}">${sbtns}</div>
           <div class="edit-actions">
@@ -951,7 +1001,7 @@ function renderChips(){
         <div class="chip-left">
           <span style="font-size:20px">${a.emoji||'🎯'}</span>
           <span class="chip-name">${a.name}</span>
-          <div class="chip-dots">${durBadge}${dots}</div>
+          <div class="chip-dots">${durBadge}${freqBadge}${dots}</div>
         </div>
         <div class="chip-actions">
           <button onclick="startEdit(${i})">✏️</button>
@@ -966,8 +1016,7 @@ function formatDate(d){return d?d.split('-').reverse().join('-'):''}
 function drawLot(){
   const pool=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter));
   if(!pool.length){alert('Geen activiteiten voor dit filter!');switchTab('activiteiten');return;}
-  const recent=history.slice(-3).map(h=>h.name);
-  const avail=pool.filter(a=>!recent.includes(a.name)||pool.length<=3);
+  const avail=pool.filter(a=>freqAvailable(a));
   const src=avail.length?avail:pool;
   const picked=src[Math.floor(Math.random()*src.length)];
   const from=document.getElementById('date-from').value;
@@ -991,7 +1040,7 @@ function drawLot(){
 
 function markDone(){
   if(!currentDraw)return;
-  currentDraw.done=true;history.push({...currentDraw});save();renderHistory();
+  currentDraw.done=true;currentDraw.timestamp=Date.now();history.push({...currentDraw});save();renderHistory();
   document.getElementById('result-meta').textContent='✓ Gemarkeerd als gedaan! 🎉';
   const db=document.getElementById('done-btn');db.disabled=true;db.textContent='✓ Gedaan!';
   if(members.length)advanceTurn();
