@@ -6,6 +6,7 @@
 <title>Lootjes App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -71,6 +72,9 @@ input:focus{outline:none;border-color:var(--a1);box-shadow:0 0 0 3px color-mix(i
 .chips{display:flex;flex-direction:column;gap:7px}
 .chip{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;transition:border-color .15s}
 .chip:hover{border-color:var(--border2)}
+.chip.blocked{opacity:.5;background:var(--bg3)}
+.chip.blocked .chip-name{text-decoration:line-through;color:var(--text2)}
+.blocked-badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
 .chip-row{display:flex;align-items:center;justify-content:space-between}
 .chip-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
 .chip-name{font-size:14px;font-weight:600;color:var(--text)}
@@ -141,6 +145,8 @@ input:focus{outline:none;border-color:var(--a1);box-shadow:0 0 0 3px color-mix(i
 .freq-btn.on.week{background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-color:#a78bfa;color:#5b21b6;font-weight:700}
 .freq-btn.on.maand{background:linear-gradient(135deg,#fce7f3,#fbcfe8);border-color:#f9a8d4;color:#9d174d;font-weight:700}
 .freq-btn.on.kwartaal{background:linear-gradient(135deg,#fff7ed,#fed7aa);border-color:#fdba74;color:#9a3412;font-weight:700}
+.freq-btn.on.jaar{background:linear-gradient(135deg,#fdf2f8,#fce7f3);border-color:#f0abfc;color:#86198f;font-weight:700}
+.freq-badge.jaar{background:linear-gradient(135deg,#fdf2f8,#fce7f3);color:#86198f}
 .freq-btn.on.eenmalig{background:linear-gradient(135deg,#fef9c3,#fef08a);border-color:#fde047;color:#854d0e;font-weight:700}
 
 /* DURATION BADGES */
@@ -404,6 +410,7 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
         <button class="freq-btn" data-f="week" onclick="selectNewFreq('week')">📅 Wekelijks</button>
         <button class="freq-btn" data-f="maand" onclick="selectNewFreq('maand')">🗓️ Maandelijks</button>
         <button class="freq-btn" data-f="kwartaal" onclick="selectNewFreq('kwartaal')">📆 Per kwartaal</button>
+        <button class="freq-btn" data-f="jaar" onclick="selectNewFreq('jaar')">🎆 Jaarlijks</button>
         <button class="freq-btn" data-f="eenmalig" onclick="selectNewFreq('eenmalig')">⭐ Eenmalig</button>
       </div>
       <div class="section-label">Duurtijd</div>
@@ -446,6 +453,7 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
         <button class="freq-btn" data-f="week" onclick="setActFilter('freq','week')">📅</button>
         <button class="freq-btn" data-f="maand" onclick="setActFilter('freq','maand')">🗓️</button>
         <button class="freq-btn" data-f="kwartaal" onclick="setActFilter('freq','kwartaal')">📆</button>
+        <button class="freq-btn" data-f="jaar" onclick="setActFilter('freq','jaar')">🎆</button>
         <button class="freq-btn" data-f="eenmalig" onclick="setActFilter('freq','eenmalig')">⭐</button>
       </div>
       <div class="chips" id="chips-list"></div>
@@ -575,6 +583,12 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
 <div class="toast" id="toast">✓ Opgeslagen!</div>
 
 <script>
+/* ─── SUPABASE ─── */
+const db=window.supabase.createClient(
+  'https://ynaczklprjncwkpsjmoi.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InluYWN6a2xwcmpuY3drcHNqbW9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MjkzMjMsImV4cCI6MjA5NDAwNTMyM30.sjp8OKxRcV4STrI02gEIxr72lv4aoon9sBeO_4ac84Q'
+);
+
 /* ─── SETTINGS PIN ─── */
 const SETTINGS_PIN='0210';
 let sPinEntry='';
@@ -653,8 +667,8 @@ document.addEventListener('click',e=>{
 const SM={altijd:{label:'Altijd',emoji:'🗓'},lente:{label:'Lente',emoji:'🌸'},zomer:{label:'Zomer',emoji:'☀️'},herfst:{label:'Herfst',emoji:'🍂'},winter:{label:'Winter',emoji:'❄️'}};
 const DUR={kort:{label:'Kort',desc:'< 1 uur',emoji:'⚡'},u12:{label:'1-2 uur',desc:'een uurtje',emoji:'🕐'},halve:{label:'Halve dag',desc:'3-4 uur',emoji:'🌤'},hele:{label:'Hele dag',desc:'5+ uur',emoji:'☀️'}};
 const DUR_ORDER=['kort','u12','halve','hele'];
-const FREQ={altijd:{label:'Altijd',emoji:'♾️',days:0},week:{label:'Wekelijks',emoji:'📅',days:7},maand:{label:'Maandelijks',emoji:'🗓️',days:30},kwartaal:{label:'Per kwartaal',emoji:'📆',days:90},eenmalig:{label:'Eenmalig',emoji:'⭐',days:null}};
-const FREQ_ORDER=['altijd','week','maand','kwartaal','eenmalig'];
+const FREQ={altijd:{label:'Altijd',emoji:'♾️',days:0},week:{label:'Wekelijks',emoji:'📅',days:7},maand:{label:'Maandelijks',emoji:'🗓️',days:30},kwartaal:{label:'Per kwartaal',emoji:'📆',days:90},jaar:{label:'Jaarlijks',emoji:'🎆',days:365},eenmalig:{label:'Eenmalig',emoji:'⭐',days:null}};
+const FREQ_ORDER=['altijd','week','maand','kwartaal','jaar','eenmalig'];
 const EMOJI_CATS={
   '⭐ Top':['🎯','🧺','🥾','🚲','🏊','🍳','🎬','🎲','🏖️','⚽','🧘','🎵','⛸️','🎨','🎭','📚','🌄','🎪','🏕️','🛶','🍕','🧁','🎸','🌍','🤸','🎡','🏔️','🎉','🧩','🌈'],
   '🏃 Buiten':['🧺','🥾','🚲','🏊','🏖️','⛷️','⛸️','🏕️','🛶','🏔️','🌄','🌊','🏄','🎣','🤿','🧗','🪂','⛺','🌲','🌸','🏇','🚵','🏌️','🤽','🚣','🎿','🛷','🪁','🏹','🌿'],
@@ -685,19 +699,60 @@ const THEMES={
   dark:{a1:'#34d399',a2:'#818cf8',bg:'#18181b',bg2:'#27272a',text:'#f4f4f5',text2:'#a1a1aa'},
 };
 
-const KEY_ACTS='loot-acts4', KEY_HIST='loot-hist4', KEY_SET='loot-settings7', KEY_MEM='loot-members2';
+const KEY_ACTS='loot-acts5', KEY_HIST='loot-hist4', KEY_SET='loot-settings7', KEY_MEM='loot-members2';
 
 function loadDefault(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch{return def;}}
 
 let activities=loadDefault(KEY_ACTS,[
-  {name:'Picknicken',emoji:'🧺',seasons:['lente','zomer'],dur:'halve'},
-  {name:'Wandelen in het park',emoji:'🥾',seasons:['altijd'],dur:'u12'},
-  {name:'Fietsen',emoji:'🚲',seasons:['lente','zomer','herfst'],dur:'halve'},
-  {name:'Spelletjesavond',emoji:'🎲',seasons:['altijd'],dur:'u12'},
-  {name:'Samen koken',emoji:'🍳',seasons:['altijd'],dur:'u12'},
-  {name:'Kleien',emoji:'🎨',seasons:['altijd'],dur:'kort'},
-  {name:'Schaatsen',emoji:'⛸️',seasons:['winter'],dur:'halve'},
-  {name:'Naar het strand',emoji:'🏖️',seasons:['zomer'],dur:'hele'}
+  {name:'Tapas dag',emoji:'🥙',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'Brieven schrijven',emoji:'✉️',seasons:['altijd'],dur:'u12',freq:'eenmalig'},
+  {name:'Klimmen in een klimpark',emoji:'🧗',seasons:['lente','zomer','herfst'],dur:'hele',freq:'eenmalig'},
+  {name:'Naar het Sportion',emoji:'👟',seasons:['altijd'],dur:'halve',freq:'eenmalig'},
+  {name:'In de woonkamer slapen',emoji:'🧸',seasons:['winter'],dur:'halve',freq:'eenmalig'},
+  {name:'Een dag alleen maar kaas eten',emoji:'🧀',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'Geen schermdag',emoji:'🤓',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'Een escaperoom doen',emoji:'🕵️',seasons:['altijd'],dur:'hele',freq:'kwartaal'},
+  {name:'Een dag onbeperkte schermtijd',emoji:'🎮',seasons:['altijd'],dur:'hele',freq:'kwartaal'},
+  {name:'Een prankdag',emoji:'🧨',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'Dennis masseren',emoji:'🧘',seasons:['altijd'],dur:'kort',freq:'altijd'},
+  {name:'Eline masseren',emoji:'🧘',seasons:['altijd'],dur:'kort',freq:'altijd'},
+  {name:'Roan masseren',emoji:'🧘',seasons:['altijd'],dur:'kort',freq:'altijd'},
+  {name:'Ayla masseren',emoji:'🧘',seasons:['altijd'],dur:'kort',freq:'altijd'},
+  {name:'Twee uur niet praten',emoji:'🤐',seasons:['altijd'],dur:'u12',freq:'eenmalig'},
+  {name:'Knutselmiddag met knutselpizza',emoji:'🎨',seasons:['winter','herfst'],dur:'halve',freq:'kwartaal'},
+  {name:'Een dag alleen maar snoep',emoji:'🍭',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'Een dag volledig buiten zijn',emoji:'🌳',seasons:['zomer'],dur:'hele',freq:'eenmalig'},
+  {name:'Wellness dag',emoji:'🧘',seasons:['zomer','winter','herfst'],dur:'hele',freq:'eenmalig'},
+  {name:'Samen een uurtje Roblox spelen',emoji:'🎮',seasons:['altijd'],dur:'kort',freq:'eenmalig'},
+  {name:'Suppen',emoji:'🏄',seasons:['zomer'],dur:'hele',freq:'eenmalig'},
+  {name:'Vissen',emoji:'🐟',seasons:['zomer'],dur:'hele',freq:'eenmalig'},
+  {name:'Een KitKat taart maken',emoji:'🍫',seasons:['altijd'],dur:'u12',freq:'eenmalig'},
+  {name:'Dennis kiest het avondeten',emoji:'🍳',seasons:['altijd'],dur:'kort',freq:'kwartaal'},
+  {name:'Eline kiest het avondeten',emoji:'🍳',seasons:['altijd'],dur:'kort',freq:'kwartaal'},
+  {name:'Roan kiest het avondeten',emoji:'🍳',seasons:['altijd'],dur:'kort',freq:'kwartaal'},
+  {name:'Ayla kiest het avondeten',emoji:'🍳',seasons:['altijd'],dur:'kort',freq:'kwartaal'},
+  {name:'Een dag alleen beleg eten',emoji:'🥪',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'Een dag veganistisch eten',emoji:'🥗',seasons:['altijd'],dur:'hele',freq:'kwartaal'},
+  {name:'Film marathon in pyjama',emoji:'🎬',seasons:['winter'],dur:'hele',freq:'kwartaal'},
+  {name:'Een dag alleen fruit eten',emoji:'🍎',seasons:['altijd'],dur:'hele',freq:'kwartaal'},
+  {name:'Twee uur lezen in de bibliotheek',emoji:'📚',seasons:['altijd'],dur:'u12',freq:'kwartaal'},
+  {name:'Een hut bouwen in het bos',emoji:'🌲',seasons:['altijd'],dur:'halve',freq:'eenmalig'},
+  {name:'De eerstvolgende trein pakken',emoji:'🚂',seasons:['altijd'],dur:'hele',freq:'kwartaal'},
+  {name:'In de tuin kamperen',emoji:'⛺',seasons:['zomer','lente'],dur:'hele',freq:'maand'},
+  {name:'Een ijsje halen als toetje',emoji:'🍦',seasons:['lente','zomer'],dur:'kort',freq:'week'},
+  {name:'Yes-day',emoji:'🚀',seasons:['altijd'],dur:'hele',freq:'eenmalig'},
+  {name:'De kinderen kiezen een weekendoutfit uit',emoji:'🦄',seasons:['altijd'],dur:'hele',freq:'kwartaal'},
+  {name:'In de natuur de zon zien opkomen',emoji:'🌅',seasons:['winter','herfst','lente'],dur:'hele',freq:'eenmalig'},
+  {name:'Picknicken als avondeten',emoji:'🧺',seasons:['lente','zomer'],dur:'halve',freq:'altijd'},
+  {name:'Fietsen',emoji:'🚲',seasons:['lente','zomer','herfst'],dur:'u12',freq:'week'},
+  {name:'Spelletjesmiddag (2 uur)',emoji:'🎲',seasons:['altijd'],dur:'u12',freq:'altijd'},
+  {name:'Samen koken',emoji:'🍳',seasons:['altijd'],dur:'u12',freq:'altijd'},
+  {name:'Kleien',emoji:'🎨',seasons:['altijd'],dur:'kort',freq:'kwartaal'},
+  {name:'Schaatsen',emoji:'⛸️',seasons:['winter'],dur:'halve',freq:'kwartaal'},
+  {name:'Naar het strand',emoji:'🏖️',seasons:['zomer'],dur:'hele',freq:'maand'},
+  {name:'Beddenwissel (volledig)',emoji:'🧸',seasons:['altijd'],dur:'halve',freq:'altijd'},
+  {name:'Beddenwissel (deels)',emoji:'🧸',seasons:['altijd'],dur:'halve',freq:'kwartaal'},
+  {name:'Wandelen in het park',emoji:'🥾',seasons:['altijd'],dur:'u12',freq:'altijd'}
 ]);
 
 let members=loadDefault(KEY_MEM,[
@@ -726,7 +781,28 @@ function save(){
     localStorage.setItem(KEY_HIST,JSON.stringify(history));
     localStorage.setItem(KEY_SET,JSON.stringify(settings));
     localStorage.setItem(KEY_MEM,JSON.stringify(members));
-  }catch(e){console.warn('Opslaan mislukt',e);}
+  }catch(e){}
+  db.from('activities').upsert([
+    {key:'acts',value:activities},
+    {key:'members',value:members},
+    {key:'history',value:history},
+    {key:'settings',value:settings}
+  ]).then(({error})=>{if(error)console.warn('Supabase fout:',error);});
+}
+
+async function syncFromSupabase(){
+  const {data,error}=await db.from('activities').select('*');
+  if(error||!data||!data.length)return;
+  let changed=false;
+  data.forEach(row=>{
+    if(row.key==='acts'&&row.value){activities=row.value;changed=true;}
+    if(row.key==='members'&&row.value){members=row.value;changed=true;}
+    if(row.key==='history'&&row.value){history=row.value;changed=true;}
+    if(row.key==='settings'&&row.value){settings={...settings,...row.value};changed=true;}
+  });
+  if(changed){
+    applySettings();renderChips();renderHistory();renderMembers();updateBeurtCard();updateFilterCount();
+  }
 }
 
 function showToast(msg){
@@ -882,9 +958,7 @@ function getCurrentSeason(){const m=new Date().getMonth()+1;if(m>=3&&m<=5)return
 function seasonMatch(act,f){return f==='alle'||act.seasons.includes(f)||act.seasons.includes('altijd');}
 function durMatch(act,d){
   if(d==='alle')return true;
-  const actIdx=DUR_ORDER.indexOf(act.dur||'halve');
-  const filterIdx=DUR_ORDER.indexOf(d);
-  return actIdx<=filterIdx;
+  return (act.dur||'halve')===d;
 }
 function actMatch(act,sf,df){return seasonMatch(act,sf)&&durMatch(act,df);}
 function updateFilterCount(){
@@ -974,6 +1048,12 @@ function addActivity(){
   inp.value='';inp.focus();
   showToast('✓ Activiteit toegevoegd!');
 }
+function toggleBlock(i){
+  activities[i].blocked=!activities[i].blocked;
+  save();renderChips();updateFilterCount();
+  showToast(activities[i].blocked?'🚫 Activiteit geblokkeerd':'✓ Activiteit vrijgegeven');
+}
+
 function removeActivity(i){
   if(editingIndex===i)editingIndex=null;
   activities.splice(i,1);
@@ -1056,16 +1136,19 @@ function renderChips(){
           </div>
         </div></div>`;
     }
-    return `<div class="chip">
+    const isBlocked=!!a.blocked;
+    const blockedBadge=isBlocked?`<span class="blocked-badge">🚫 Geblokkeerd</span>`:'';
+    return `<div class="chip${isBlocked?' blocked':''}">
       <div class="chip-row">
         <div class="chip-left">
           <span style="font-size:20px;flex-shrink:0">${a.emoji||'🎯'}</span>
           <div style="flex:1;min-width:0">
             <div class="chip-name">${a.name}</div>
-            <div class="chip-tags">${durBadge}${freqBadge}${dots}</div>
+            <div class="chip-tags">${blockedBadge}${durBadge}${freqBadge}${dots}</div>
           </div>
         </div>
         <div class="chip-actions">
+          <button onclick="toggleBlock(${i})" title="${isBlocked?'Vrijgeven':'Blokkeren'}">${isBlocked?'▶':'🚫'}</button>
           <button onclick="startEdit(${i})">✏️</button>
           <button onclick="removeActivity(${i})">✕</button>
         </div>
@@ -1077,7 +1160,7 @@ function renderChips(){
 /* ─── DRAW ─── */
 function formatDate(d){return d?d.split('-').reverse().join('-'):''}
 function drawLot(){
-  const pool=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter));
+  const pool=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter)&&!a.blocked);
   if(!pool.length){alert('Geen activiteiten voor dit filter!');switchTab('activiteiten');return;}
   const avail=pool.filter(a=>freqAvailable(a));
   const src=avail.length?avail:pool;
@@ -1162,6 +1245,14 @@ updateFilterCount();
 renderChips();
 renderHistory();
 updateBeurtCard();
+
+// Supabase sync & realtime
+syncFromSupabase();
+db.channel('avonturenpot')
+  .on('postgres_changes',{event:'*',schema:'public',table:'activities'},()=>{
+    syncFromSupabase();
+  })
+  .subscribe();
 </script>
 </body>
 </html>
