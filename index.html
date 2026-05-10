@@ -685,7 +685,7 @@ const THEMES={
   dark:{a1:'#34d399',a2:'#818cf8',bg:'#18181b',bg2:'#27272a',text:'#f4f4f5',text2:'#a1a1aa'},
 };
 
-const KEY_ACTS='loot-acts4', KEY_HIST='loot-hist4', KEY_SET='loot-settings6', KEY_MEM='loot-members1';
+const KEY_ACTS='loot-acts4', KEY_HIST='loot-hist4', KEY_SET='loot-settings7', KEY_MEM='loot-members1';
 
 function loadDefault(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch{return def;}}
 
@@ -703,11 +703,11 @@ let activities=loadDefault(KEY_ACTS,[
 let members=loadDefault(KEY_MEM,[]);
 let history=loadDefault(KEY_HIST,[]);
 let settings=loadDefault(KEY_SET,{
-  name:'🎟 Lootjes',
-  subtitle:'Trek een willekeurige activiteit voor het gezin.',
-  btntext:'Trek een lootje 🎲',
+  name:'Avonturenpot 🧳',
+  subtitle:'Wij gaan samen de uitdaging aan!',
+  btntext:'Start het avontuur! 🔮',
   currentMember:0,
-  colors:{a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'}
+  colors:{a1:'#1D9E75',a2:'#0ea5e9',bg:'#cbf0ff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'}
 });
 if(!settings.colors)settings.colors={a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'};
 if(!settings.currentMember)settings.currentMember=0;
