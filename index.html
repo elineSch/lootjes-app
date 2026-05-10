@@ -73,7 +73,8 @@ input:focus{outline:none;border-color:var(--a1);box-shadow:0 0 0 3px color-mix(i
 .chip:hover{border-color:var(--border2)}
 .chip-row{display:flex;align-items:center;justify-content:space-between}
 .chip-left{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
-.chip-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.chip-name{font-size:14px;font-weight:600;color:var(--text)}
+.chip-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
 .chip-dots{display:flex;gap:3px;flex-shrink:0}
 .s-dot{font-size:10px;padding:2px 7px;border-radius:9px;font-weight:700}
 .s-dot.lente{background:linear-gradient(135deg,#d4edda,#a8e6cf);color:#1a6b35}
@@ -422,7 +423,31 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
       </div>
     </div>
     <div class="card">
-      <div class="section-label">Alle activiteiten</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.65rem">
+        <div class="section-label" style="margin:0">Alle activiteiten</div>
+        <span style="font-size:12px;color:var(--text2)" id="act-count"></span>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem" id="act-filter-season">
+        <button class="sf-btn active" data-f="alle" onclick="setActFilter('season','alle')">🗓 Alle</button>
+        <button class="sf-btn" data-f="lente" onclick="setActFilter('season','lente')">🌸</button>
+        <button class="sf-btn" data-f="zomer" onclick="setActFilter('season','zomer')">☀️</button>
+        <button class="sf-btn" data-f="herfst" onclick="setActFilter('season','herfst')">🍂</button>
+        <button class="sf-btn" data-f="winter" onclick="setActFilter('season','winter')">❄️</button>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem" id="act-filter-dur">
+        <button class="dur-btn on kort" data-d="alle" onclick="setActFilter('dur','alle')">⏱ Alle</button>
+        <button class="dur-btn" data-d="kort" onclick="setActFilter('dur','kort')">⚡</button>
+        <button class="dur-btn" data-d="u12" onclick="setActFilter('dur','u12')">🕐</button>
+        <button class="dur-btn" data-d="halve" onclick="setActFilter('dur','halve')">🌤</button>
+        <button class="dur-btn" data-d="hele" onclick="setActFilter('dur','hele')">☀️</button>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.75rem" id="act-filter-freq">
+        <button class="freq-btn on altijd" data-f="alle" onclick="setActFilter('freq','alle')">♾ Alle</button>
+        <button class="freq-btn" data-f="week" onclick="setActFilter('freq','week')">📅</button>
+        <button class="freq-btn" data-f="maand" onclick="setActFilter('freq','maand')">🗓️</button>
+        <button class="freq-btn" data-f="kwartaal" onclick="setActFilter('freq','kwartaal')">📆</button>
+        <button class="freq-btn" data-f="eenmalig" onclick="setActFilter('freq','eenmalig')">⭐</button>
+      </div>
       <div class="chips" id="chips-list"></div>
     </div>
   </div>
@@ -688,6 +713,7 @@ if(!settings.colors)settings.colors={a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:
 if(!settings.currentMember)settings.currentMember=0;
 
 let currentDraw=null, activeFilter='alle', activeDurFilter='alle', newSeasons=['altijd'], newEmoji='🎯', newDuration='halve', newFreq='altijd', editingIndex=null;
+let actFilterSeason='alle', actFilterDur='alle', actFilterFreq='alle';
 
 function save(){
   try{
@@ -885,6 +911,26 @@ function selectNewDur(d){
     if(b.dataset.d===d){b.classList.add('on',d);}
   });
 }
+function setActFilter(type,val){
+  if(type==='season'){
+    actFilterSeason=val;
+    document.querySelectorAll('#act-filter-season .sf-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===val));
+  } else if(type==='dur'){
+    actFilterDur=val;
+    document.querySelectorAll('#act-filter-dur .dur-btn').forEach(b=>{
+      b.classList.remove('on','kort','u12','halve','hele');
+      if(b.dataset.d===val){b.classList.add('on');if(val!=='alle')b.classList.add(val);}
+    });
+  } else if(type==='freq'){
+    actFilterFreq=val;
+    document.querySelectorAll('#act-filter-freq .freq-btn').forEach(b=>{
+      b.classList.remove('on','altijd','week','maand','kwartaal','eenmalig');
+      if(b.dataset.f===val){b.classList.add('on');if(val!=='alle')b.classList.add(val);}
+    });
+  }
+  renderChips();
+}
+
 function selectNewFreq(f){
   newFreq=f;
   document.querySelectorAll('#new-freq-row .freq-btn').forEach(b=>{
@@ -971,7 +1017,16 @@ function toggleEditSeason(btn,i){
 function renderChips(){
   const el=document.getElementById('chips-list');
   if(!activities.length){el.innerHTML='<span class="empty-hint">Nog geen activiteiten.</span>';return;}
-  el.innerHTML=activities.map((a,i)=>{
+  const visible=activities.filter(a=>{
+    if(actFilterSeason!=='alle'&&!a.seasons.includes(actFilterSeason)&&!a.seasons.includes('altijd'))return false;
+    if(actFilterDur!=='alle'&&(a.dur||'halve')!==actFilterDur)return false;
+    if(actFilterFreq!=='alle'&&(a.freq||'altijd')!==actFilterFreq)return false;
+    return true;
+  });
+  const cnt=document.getElementById('act-count');
+  if(cnt)cnt.textContent=`${visible.length} van ${activities.length}`;
+  if(!visible.length){el.innerHTML='<span class="empty-hint">Geen activiteiten voor dit filter.</span>';return;}
+  el.innerHTML=visible.map(a=>{const i=activities.indexOf(a);
     const isEditing=editingIndex===i;
     const curDur=a.dur||'halve';
     const curFreq=a.freq||'altijd';
@@ -999,9 +1054,11 @@ function renderChips(){
     return `<div class="chip">
       <div class="chip-row">
         <div class="chip-left">
-          <span style="font-size:20px">${a.emoji||'🎯'}</span>
-          <span class="chip-name">${a.name}</span>
-          <div class="chip-dots">${durBadge}${freqBadge}${dots}</div>
+          <span style="font-size:20px;flex-shrink:0">${a.emoji||'🎯'}</span>
+          <div style="flex:1;min-width:0">
+            <div class="chip-name">${a.name}</div>
+            <div class="chip-tags">${durBadge}${freqBadge}${dots}</div>
+          </div>
         </div>
         <div class="chip-actions">
           <button onclick="startEdit(${i})">✏️</button>
@@ -1010,6 +1067,7 @@ function renderChips(){
       </div></div>`;
   }).join('');
 }
+
 
 /* ─── DRAW ─── */
 function formatDate(d){return d?d.split('-').reverse().join('-'):''}
