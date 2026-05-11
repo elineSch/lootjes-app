@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lootjes App</title>
+<title>Activiteitenpot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -298,7 +298,7 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
 
 <!-- PIN SCREEN -->
 <div class="pin-screen" id="pin-screen">
-  <div class="pin-title">🎟 Lootjes</div>
+  <div class="pin-title">🧳 Activiteitenpot</div>
   <div class="pin-sub">Voer de PIN-code in</div>
   <div class="pin-dots" id="pin-dots">
     <div class="pin-dot" id="pd0"></div>
@@ -362,12 +362,13 @@ body.dark{--bg:#18181b;--bg2:#27272a;--bg3:#3f3f46;--text:#f4f4f5;--text2:#a1a1a
     </div>
     <div class="card">
       <div class="section-label">Seizoensfilter</div>
-      <div class="sf-row">
+      <div class="sf-row" id="trek-season-filter">
         <button class="sf-btn active" data-f="alle" onclick="setFilter('alle')">🗓 Alle</button>
-        <button class="sf-btn" data-f="lente" onclick="setFilter('lente')">🌸 Lente</button>
-        <button class="sf-btn" data-f="zomer" onclick="setFilter('zomer')">☀️ Zomer</button>
-        <button class="sf-btn" data-f="herfst" onclick="setFilter('herfst')">🍂 Herfst</button>
-        <button class="sf-btn" data-f="winter" onclick="setFilter('winter')">❄️ Winter</button>
+        <button class="sf-btn" data-f="lente" onclick="toggleSeasonFilter('lente')">🌸 Lente</button>
+        <button class="sf-btn" data-f="zomer" onclick="toggleSeasonFilter('zomer')">☀️ Zomer</button>
+        <button class="sf-btn" data-f="herfst" onclick="toggleSeasonFilter('herfst')">🍂 Herfst</button>
+        <button class="sf-btn" data-f="winter" onclick="toggleSeasonFilter('winter')">❄️ Winter</button>
+        <button class="sf-btn" data-f="nu" onclick="setCurrentSeason()" style="font-style:italic">🗓 Nu</button>
       </div>
       <div style="font-size:12px;color:var(--text2)" id="filter-count"></div>
     </div>
@@ -763,7 +764,7 @@ let members=loadDefault(KEY_MEM,[
 ]);
 let history=loadDefault(KEY_HIST,[]);
 let settings=loadDefault(KEY_SET,{
-  name:'Avonturenpot 🧳',
+  name:'Activiteitenpot 🧳',
   subtitle:'Wij gaan samen de uitdaging aan!',
   btntext:'Start het avontuur! 🔮',
   currentMember:0,
@@ -772,7 +773,7 @@ let settings=loadDefault(KEY_SET,{
 if(!settings.colors)settings.colors={a1:'#1D9E75',a2:'#0ea5e9',bg:'#ffffff',bg2:'#f5f5f3',text:'#1a1a1a',text2:'#666666'};
 if(!settings.currentMember)settings.currentMember=0;
 
-let currentDraw=null, activeFilter='alle', activeDurFilter='alle', newSeasons=['altijd'], newEmoji='🎯', newDuration='halve', newFreq='altijd', editingIndex=null;
+let currentDraw=null, activeFilter='alle', activeSeasons=[], activeDurFilter='alle', newSeasons=['altijd'], newEmoji='🎯', newDuration='halve', newFreq='altijd', editingIndex=null;
 let actFilterSeason='alle', actFilterDur='alle', actFilterFreq='alle';
 
 function save(){
@@ -786,7 +787,8 @@ function save(){
     {key:'acts',value:activities},
     {key:'members',value:members},
     {key:'history',value:history},
-    {key:'settings',value:settings}
+    {key:'settings',value:settings},
+    {key:'currentDraw',value:currentDraw}
   ]).then(({error})=>{if(error)console.warn('Supabase fout:',error);});
 }
 
@@ -799,9 +801,11 @@ async function syncFromSupabase(){
     if(row.key==='members'&&row.value){members=row.value;changed=true;}
     if(row.key==='history'&&row.value){history=row.value;changed=true;}
     if(row.key==='settings'&&row.value){settings={...settings,...row.value};changed=true;}
+    if(row.key==='currentDraw'){currentDraw=row.value;changed=true;}
   });
   if(changed){
     applySettings();renderChips();renderHistory();renderMembers();updateBeurtCard();updateFilterCount();
+    if(currentDraw)showCurrentDraw();
   }
 }
 
@@ -955,19 +959,45 @@ function selectEditEmoji(e,i){
 
 /* ─── SEASON LOGIC ─── */
 function getCurrentSeason(){const m=new Date().getMonth()+1;if(m>=3&&m<=5)return 'lente';if(m>=6&&m<=8)return 'zomer';if(m>=9&&m<=11)return 'herfst';return 'winter';}
-function seasonMatch(act,f){return f==='alle'||act.seasons.includes(f)||act.seasons.includes('altijd');}
+function seasonMatch(act){
+  if(activeSeasons.length===0)return true;
+  return act.seasons.includes('altijd')||activeSeasons.some(s=>act.seasons.includes(s));
+}
 function durMatch(act,d){
   if(d==='alle')return true;
   return (act.dur||'halve')===d;
 }
-function actMatch(act,sf,df){return seasonMatch(act,sf)&&durMatch(act,df);}
+function actMatch(act,sf,df){return seasonMatch(act)&&durMatch(act,df);}
+function updateSeasonFilterUI(){
+  const alleActive=activeSeasons.length===0;
+  document.querySelectorAll('#trek-season-filter .sf-btn').forEach(b=>{
+    if(b.dataset.f==='alle')b.classList.toggle('active',alleActive);
+    else if(b.dataset.f==='nu')b.classList.remove('active');
+    else b.classList.toggle('active',activeSeasons.includes(b.dataset.f));
+  });
+}
 function updateFilterCount(){
-  const n=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter)).length;
+  const n=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter)&&!a.blocked).length;
   document.getElementById('filter-count').textContent=`${n} activiteit${n!==1?'en':''} beschikbaar`;
 }
 function setFilter(f){
-  activeFilter=f;
-  document.querySelectorAll('.sf-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
+  activeSeasons=[];
+  updateSeasonFilterUI();
+  updateFilterCount();
+  document.getElementById('result-box').classList.remove('show');
+}
+function toggleSeasonFilter(s){
+  if(activeSeasons.includes(s))activeSeasons=activeSeasons.filter(x=>x!==s);
+  else activeSeasons.push(s);
+  updateSeasonFilterUI();
+  updateFilterCount();
+  document.getElementById('result-box').classList.remove('show');
+}
+function setCurrentSeason(){
+  activeSeasons=[getCurrentSeason()];
+  updateSeasonFilterUI();
+  const nuBtn=document.querySelector('.sf-btn[data-f="nu"]');
+  if(nuBtn)nuBtn.classList.add('active');
   updateFilterCount();
   document.getElementById('result-box').classList.remove('show');
 }
@@ -1159,6 +1189,18 @@ function renderChips(){
 
 /* ─── DRAW ─── */
 function formatDate(d){return d?d.split('-').reverse().join('-'):''}
+function showCurrentDraw(){
+  if(!currentDraw)return;
+  const durInfo=DUR[currentDraw.dur||'halve'];
+  document.getElementById('result-emoji').textContent=currentDraw.emoji||'🎯';
+  document.getElementById('result-name').textContent=currentDraw.name;
+  document.getElementById('result-period').textContent=currentDraw.period?`📅 ${currentDraw.period}`:'';
+  document.getElementById('result-meta').textContent=`${durInfo.emoji} ${durInfo.label}${currentDraw.drawnBy?' · '+currentDraw.drawnBy:''}`;
+  const db2=document.getElementById('done-btn');
+  db2.disabled=false;db2.textContent='✓ Gedaan!';
+  const box=document.getElementById('result-box');
+  box.classList.add('show');
+}
 function drawLot(){
   const pool=activities.filter(a=>actMatch(a,activeFilter,activeDurFilter)&&!a.blocked);
   if(!pool.length){alert('Geen activiteiten voor dit filter!');switchTab('activiteiten');return;}
@@ -1186,7 +1228,9 @@ function drawLot(){
 
 function markDone(){
   if(!currentDraw)return;
-  currentDraw.done=true;currentDraw.timestamp=Date.now();history.push({...currentDraw});save();renderHistory();
+  currentDraw.done=true;currentDraw.timestamp=Date.now();history.push({...currentDraw});
+  const finishedDraw=currentDraw;currentDraw=null;save();
+  currentDraw=finishedDraw;renderHistory();
   document.getElementById('result-meta').textContent='✓ Gemarkeerd als gedaan! 🎉';
   const db=document.getElementById('done-btn');db.disabled=true;db.textContent='✓ Gedaan!';
   if(members.length)advanceTurn();
