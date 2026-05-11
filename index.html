@@ -1224,6 +1224,7 @@ function drawLot(){
   db.disabled=false;db.textContent='✓ Gedaan!';
   const box=document.getElementById('result-box');
   box.classList.remove('show');void box.offsetWidth;box.classList.add('show');
+  save();
 }
 
 function markDone(){
