@@ -1213,7 +1213,7 @@ function drawLot(){
   if(from&&to)period=`${formatDate(from)} – ${formatDate(to)}`;
   else if(from)period=`Vanaf ${formatDate(from)}`;
   const drawnBy=members.length?members[settings.currentMember]?.name:null;
-  currentDraw={name:picked.name,emoji:picked.emoji||'🎯',seasons:picked.seasons,date:new Date().toLocaleDateString('nl-NL'),done:false,period,drawnBy};
+  currentDraw={name:picked.name,emoji:picked.emoji||'🎯',seasons:picked.seasons,dur:picked.dur||'halve',date:new Date().toLocaleDateString('nl-NL'),done:false,period,drawnBy};
   const sLabels=picked.seasons.map(s=>SM[s].emoji+' '+SM[s].label).join(', ');
   const durInfo=DUR[picked.dur||'halve'];
   document.getElementById('result-emoji').textContent=picked.emoji||'🎯';
